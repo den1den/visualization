@@ -35,7 +35,12 @@ public class Volume {
         
     }
     
-    
+    /**
+     * @param x
+     * @param y
+     * @param z
+     * @return Voxel at (x, y, z)
+     */
     public short getVoxel(int x, int y, int z) {
         return data[x + dimX*(y + dimY * z)];
     }
@@ -48,22 +53,38 @@ public class Volume {
         data[i] = value;
     }
     
+    /**
+     * @param i index of Voxel in linear fashion
+     * @return Voxel at i
+     */
     public short getVoxel(int i) {
         return data[i];
     }
     
+    /**
+     * @return size of data in x direction
+     */
     public int getDimX() {
         return dimX;
     }
     
+    /**
+     * @return size of data in y direction
+     */
     public int getDimY() {
         return dimY;
     }
     
+    /**
+     * @return size of data in z direction
+     */
     public int getDimZ() {
         return dimZ;
     }
 
+    /**
+     * @return minimum intensity
+     */
     public short getMinimum() {
         short minimum = data[0];
         for (int i=0; i<data.length; i++) {
@@ -72,6 +93,9 @@ public class Volume {
         return minimum;
     }
 
+    /**
+     * @return maximum intensity
+     */
     public short getMaximum() {
         short maximum = data[0];
         for (int i=0; i<data.length; i++) {
@@ -80,6 +104,10 @@ public class Volume {
         return maximum;
     }
  
+    /**
+     * Get a histogram of all the intensities.
+     * @return histogram s.t. histogram[intensity] = frequency
+     */
     public int[] getHistogram() {
         return histogram;
     }

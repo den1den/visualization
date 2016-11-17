@@ -20,7 +20,7 @@ import util.TFChangeListener;
 import util.TrackballInteractor;
 
 /**
- *
+ * OpenGL wrapper that manages the Renderer classes
  * @author michel
  */
 public class Visualization implements GLEventListener, TFChangeListener {

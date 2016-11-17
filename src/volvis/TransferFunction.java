@@ -9,13 +9,18 @@ import java.util.ArrayList;
 import util.TFChangeListener;
 
 /**
- *
+ * 
  * @author michel
  */
 public class TransferFunction {
 
     private ArrayList<TFChangeListener> listeners = new ArrayList<TFChangeListener>();
     
+    /**
+     * Simple transfer function between two points
+     * @param min domain
+     * @param max domain
+     */
     public TransferFunction(short min, short max) {
         sMin = min;
         sMax = max;
@@ -123,6 +128,9 @@ public class TransferFunction {
         return idx;
     }
 
+    /**
+     * Builds an lookup table
+     */
     private void buildLUT() {
 
         for (int i = 1; i < controlPoints.size(); i++) {
@@ -145,6 +153,9 @@ public class TransferFunction {
 
     }
 
+    /**
+     * A point along a line with a color value associated with it
+     */
     public class ControlPoint implements Comparable<ControlPoint> {
 
         public int value;
@@ -168,6 +179,9 @@ public class TransferFunction {
     }
     private short sMin, sMax;
     private int sRange;
+    /**
+     * Look up table
+     */
     private TFColor[] LUT;
     private int LUTsize = 4095;
     private ArrayList<ControlPoint> controlPoints;

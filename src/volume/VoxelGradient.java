@@ -5,7 +5,7 @@
 package volume;
 
 /**
- *
+ * Vector
  * @author michel
  */
 public class VoxelGradient {

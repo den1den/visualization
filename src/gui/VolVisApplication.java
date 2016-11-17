@@ -10,7 +10,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import volume.Volume;
-import volvis.RaycastRenderer;
+import volvis.raycaster.RaycastRenderer;
 import volvis.Visualization;
 
 /**
@@ -43,7 +43,7 @@ public class VolVisApplication extends javax.swing.JFrame {
         raycastRenderer.addTFChangeListener(visualization);
         tabbedPanel.addTab("Raycaster", raycastRenderer.getPanel());
         
-        loadFile(new File("/home/dennis/repos/Visualization/set1_data/carp8.fld"));
+        loadFile(new File("/home/dennis/repos/Visualization/set1_data/orange.fld"));
     }
 
     /**

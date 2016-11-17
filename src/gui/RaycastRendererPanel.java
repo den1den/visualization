@@ -5,7 +5,7 @@
 package gui;
 
 import javax.swing.JOptionPane;
-import volvis.RaycastRenderer;
+import volvis.raycaster.RaycastRenderer;
 
 /**
  *

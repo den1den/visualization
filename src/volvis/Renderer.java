@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import util.TFChangeListener;
 
 /**
- *
+ * Abstract class to implement an rendering of the dataset to an image
  * @author michel
  */
 public abstract class Renderer {
      int winWidth, winHeight;
     boolean visible = false;
     boolean interactiveMode = false;
-    ArrayList<TFChangeListener> listeners = new ArrayList<TFChangeListener>();
+    public final ArrayList<TFChangeListener> listeners = new ArrayList<TFChangeListener>();
 
     public Renderer() {
         

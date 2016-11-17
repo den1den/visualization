@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package volvis;
+package volvis.raycaster;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -15,7 +15,11 @@ import java.awt.image.BufferedImage;
 import util.TFChangeListener;
 import util.VectorMath;
 import volume.GradientVolume;
+import volume.ZeroGradientVolume;
 import volume.Volume;
+import volvis.Renderer;
+import volvis.TFColor;
+import volvis.TransferFunction;
 
 /**
  *
@@ -23,8 +27,8 @@ import volume.Volume;
  */
 public class RaycastRenderer extends Renderer implements TFChangeListener {
 
-    private Volume volume = null;
-    private GradientVolume gradients = null;
+    protected Volume volume = null;
+    protected GradientVolume gradients = null;
     RaycastRendererPanel panel;
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
@@ -35,12 +39,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         panel.setSpeedLabel("0");
     }
 
+    /**
+     * Initialize this renderer
+     * @param vol the new volume to use
+     */
     public void setVolume(Volume vol) {
         System.out.println("Assigning volume");
         volume = vol;
 
         System.out.println("Computing gradients");
-        gradients = new GradientVolume(vol);
+        gradients = new ZeroGradientVolume(vol);
 
         // set up image for storing the resulting rendering
         // the image width and height are equal to the length of the volume diagonal
@@ -50,14 +58,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             imageSize = imageSize + 1;
         }
         image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
-        // create a standard TF where lowest intensity maps to black, the highest to white, and opacity increases
-        // linearly from 0.0 to 1.0 over the intensity range
+        // create a standard TF of the dataset.
+        // This maps an intensity value to some color value
         tFunc = new TransferFunction(volume.getMinimum(), volume.getMaximum());
         
         // uncomment this to initialize the TF with good starting values for the orange dataset 
-        //tFunc.setTestFunc();
+        tFunc.setTestFunc();
         
-        
+        // Link the editor to our tFunc
         tFunc.addTFChangeListener(this);
         tfEditor = new TransferFunctionEditor(tFunc, volume.getHistogram());
         
@@ -79,7 +87,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return tfEditor;
     }
      
-
+    /**
+     * Shortcut for getting a Voxel
+     * @param coord array of (x, y, z) coordinates
+     * @return Voxel at (x, y, z)
+     */
     short getVoxel(double[] coord) {
 
         if (coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
@@ -94,7 +106,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return volume.getVoxel(x, y, z);
     }
 
-
+    /**
+     * Sets the RGB values in this.image on update
+     * @param viewMatrix the current view orientation
+     */
     void slicer(double[] viewMatrix) {
 
         // clear image
@@ -137,12 +152,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int val = getVoxel(pixelCoord);
                 
                 // Map the intensity to a grey value by linear scaling
-                voxelColor.r = val/max;
-                voxelColor.g = voxelColor.r;
-                voxelColor.b = voxelColor.r;
-                voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
+                //voxelColor.r = val/max;
+                //voxelColor.g = voxelColor.r;
+                //voxelColor.b = voxelColor.r;
+                //voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
                 // Alternatively, apply the transfer function to obtain a color
-                // voxelColor = tFunc.getColor(val);
+                voxelColor = tFunc.getColor(val);
                 
                 
                 // BufferedImage expects a pixel color packed as ARGB in an int
@@ -157,7 +172,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
 
-
+    /**
+     * Do GL stuff
+     * @param gl 
+     */
     private void drawBoundingBox(GL2 gl) {
         gl.glPushAttrib(GL2.GL_CURRENT_BIT);
         gl.glDisable(GL2.GL_LIGHTING);
@@ -217,6 +235,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
 
+    /**
+     * Is called on an request to update the image, does GL stuff
+     * @param gl 
+     */
     @Override
     public void visualize(GL2 gl) {
 
@@ -272,8 +294,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
 
     }
-    private BufferedImage image;
-    private double[] viewMatrix = new double[4 * 4];
+    protected BufferedImage image;
+    protected double[] viewMatrix = new double[4 * 4];
 
     @Override
     public void changed() {

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- *
+ * Helper class that loads in Data from a file
  * @author michel
  */
 public class VolumeIO {

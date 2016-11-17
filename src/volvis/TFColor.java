@@ -5,7 +5,7 @@
 package volvis;
 
 /**
- *
+ * RGB color with alpha value
  * @author michel
  */
 public class TFColor {

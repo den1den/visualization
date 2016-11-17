@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import javax.swing.JColorChooser;
 import util.TFChangeListener;
 import volume.GradientVolume;
+import volume.ZeroGradientVolume;
 import volume.Volume;
 import volume.VoxelGradient;
 import volvis.TFColor;

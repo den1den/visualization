@@ -7,7 +7,7 @@ package util;
 import com.jogamp.opengl.GL2;
 
 /**
- *
+ * Used for interpreting mouse movements
  * @author michel
  */
 public class TrackballInteractor {
