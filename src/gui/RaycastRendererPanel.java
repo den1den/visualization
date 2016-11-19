@@ -47,6 +47,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         compositingButton = new javax.swing.JRadioButton();
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
+        jRadioButton1 = new javax.swing.JRadioButton();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -92,6 +93,14 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
+        buttonGroup1.add(jRadioButton1);
+        jRadioButton1.setText("MaxSlicer");
+        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -107,7 +116,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                         .addComponent(compositingButton)
                         .addComponent(tf2dButton)
                         .addComponent(mipButton)
-                        .addComponent(slicerButton)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(slicerButton)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(jRadioButton1))
                         .addComponent(shadingCheckbox)))
                 .addContainerGap(339, Short.MAX_VALUE))
         );
@@ -119,7 +131,9 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                     .addComponent(jLabel1)
                     .addComponent(renderingSpeedLabel))
                 .addGap(49, 49, 49)
-                .addComponent(slicerButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(slicerButton)
+                    .addComponent(jRadioButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mipButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -137,7 +151,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        
+        renderer.setOPTION(RaycastRenderer.RaycastOption.DEFAULT);
+        renderer.changed();
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
@@ -152,10 +167,16 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         JOptionPane.showMessageDialog(this, "Not implemented.");
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 
+    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
+        renderer.setOPTION(RaycastRenderer.RaycastOption.MAX_INTENSITY);
+        renderer.changed();
+    }//GEN-LAST:event_jRadioButton1ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;
     private javax.swing.JCheckBox shadingCheckbox;

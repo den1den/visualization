@@ -41,6 +41,9 @@ public class VolVisApplication extends javax.swing.JFrame {
         raycastRenderer = new RaycastRenderer();
         visualization.addRenderer(raycastRenderer);
         raycastRenderer.addTFChangeListener(visualization);
+        
+        
+        
         tabbedPanel.addTab("Raycaster", raycastRenderer.getPanel());
         
         loadFile(new File("/home/dennis/repos/Visualization/set1_data/orange.fld"));
