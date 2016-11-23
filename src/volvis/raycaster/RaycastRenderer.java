@@ -6,6 +6,11 @@ package volvis.raycaster;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import gui.RaycastRendererPanel;
@@ -333,35 +338,44 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
 
     private void maxSlicer(double[] viewVec, double[] vVec, double[] uVec, int imageCenter) {
-        double[] volumeCenter = new double[3];
-        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+        double[] volumeCenter = volume.getCenter();
 
         // sample on a plane through the origin of the volume data
         double max = volume.getMaximum();
         TFColor voxelColor;
-        
-        float dt = 0.01f;
 
+        double[] q = VectorMath.extend_to_box(viewVec);
+        double[] q0 = new double[3];
+        double[] dq = new double[3];
+        
+        int steps = 10;
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
-                double[] q0 = new double[3];
-                double[] q1 = new double[3];
                 
-                for(float t = 0; t <= 1; t += dt){
-                    
+                
+                
+                VectorMath.setVector(q, volumeCenter);
+                VectorMath.addVector(q, -0.5, volume.scaleVector(viewVec));
+                VectorMath.addVector(q, (i - imageCenter), uVec);
+                VectorMath.addVector(q, (j - imageCenter), vVec);
+                
+                double[] dq = new double[3];
+                VectorMath.setVector(dq, q);
+                VectorMath.addVector(dq, 0.5, volume.scaleVector(viewVec));
+                VectorMath.scale(dq, 1.0 / steps);
+                
+                int maxVal = -1;
+                for(int s = 0; s < steps; s++){
+                    int val = getVoxel(q);
+                    if(val > maxVal){
+                        maxVal = val;
+                    }
+                    VectorMath.addVector(q, dq);
                 }
-                
-                double[] pixelCoord = new double[3];
-                pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
-                        + volumeCenter[0];
-                pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
-                        + volumeCenter[1];
-                pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                        + volumeCenter[2];
 
-                int val = getVoxel(pixelCoord);
-                voxelColor = tFunc.getColor(val);
+                
+                voxelColor = tFunc.getColor(maxVal);
 
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
