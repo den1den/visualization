@@ -47,7 +47,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         compositingButton = new javax.swing.JRadioButton();
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        jComboBox1 = new javax.swing.JComboBox<>();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -93,10 +93,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
-        jCheckBox1.setText("trilinear");
-        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "floor", "average", "trilinear" }));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox1ActionPerformed(evt);
+                jComboBox1ActionPerformed(evt);
             }
         });
 
@@ -107,21 +107,19 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(renderingSpeedLabel)
-                        .addGap(58, 58, 58))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(compositingButton)
-                            .addComponent(tf2dButton)
-                            .addComponent(slicerButton)
-                            .addComponent(shadingCheckbox)
-                            .addComponent(mipButton))
-                        .addGap(67, 67, 67)))
-                .addComponent(jCheckBox1)
-                .addContainerGap(207, Short.MAX_VALUE))
+                        .addComponent(renderingSpeedLabel))
+                    .addComponent(compositingButton, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tf2dButton, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(slicerButton)
+                        .addGap(150, 150, 150)
+                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(shadingCheckbox, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(mipButton, javax.swing.GroupLayout.Alignment.LEADING))
+                .addContainerGap(217, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -130,10 +128,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(renderingSpeedLabel))
-                .addGap(49, 49, 49)
+                .addGap(48, 48, 48)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(slicerButton)
-                    .addComponent(jCheckBox1))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mipButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -142,7 +140,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addComponent(tf2dButton)
                 .addGap(18, 18, 18)
                 .addComponent(shadingCheckbox)
-                .addContainerGap(137, Short.MAX_VALUE))
+                .addContainerGap(136, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -157,7 +155,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+        renderer.OPTION = RaycastRenderer.RaycastOption.COMPOSITE;
+        renderer.changed();
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
@@ -168,19 +167,27 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         JOptionPane.showMessageDialog(this, "Not implemented.");
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 
-    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
-        if(jCheckBox1.isSelected()){
-            renderer.VAL_FUNC = RaycastRenderer.ValueFunction.TRI_LINEAR;
-        } else {
-            renderer.VAL_FUNC = RaycastRenderer.ValueFunction.ROUND_DOWN;
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        switch (jComboBox1.getSelectedIndex()) {
+            case 0:
+                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.ROUND_DOWN;
+                break;
+            case 1:
+                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.NEAREST;
+                break;
+            case 2:
+                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.TRI_LINEAR;
+                break;
+            default:
+                break;
         }
         renderer.changed();
-    }//GEN-LAST:event_jCheckBox1ActionPerformed
+    }//GEN-LAST:event_jComboBox1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
-    private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;

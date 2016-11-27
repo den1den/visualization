@@ -4,8 +4,6 @@
  */
 package volume;
 
-import com.jogamp.opengl.math.geom.AABBox;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import java.io.File;
 import java.io.IOException;
 import util.VectorMath;
@@ -202,31 +200,38 @@ public class Volume {
         }
     }
 
-    public int getMinDim() {
+    public int getMinIntersectionLength() {
         return Math.min(dimX, Math.min(dimY, dimZ));
     }
 
     /**
-     * Shortcut for getting a Voxel
-     *
-     * @param coord array of (x, y, z) coordinates
-     * @return Voxel at (x, y, z)
+     * Floored Voxel
      */
-    public short getVoxel(double[] coord) {
-        if (coord[0] < 0 || coord[0] > dimX || coord[1] < 0 || coord[1] > dimY
-                || coord[2] < 0 || coord[2] > dimZ) {
+    public short getFloorVoxel(double x, double y, double z) {
+        if (x < 0 || x > dimX - 1 || y < 0 || y > dimY - 1 || z < 0 || z > dimZ - 1) {
             return 0;
         }
 
-        int x = (int) Math.floor(coord[0]);
-        int y = (int) Math.floor(coord[1]);
-        int z = (int) Math.floor(coord[2]);
+        int xI = (int) Math.floor(x);
+        int yI = (int) Math.floor(y);
+        int zI = (int) Math.floor(z);
 
-        return getVoxel(x, y, z);
+        return getVoxel(xI, yI, zI);
     }
 
-    public float getTriVoxel(double[] coord) {
-        return getTriVoxel(coord[0], coord[1], coord[2]);
+    /**
+     * Nearest neighbor Voxel
+     */
+    public float getNNVoxel(float x, float y, float z){
+        if (x < 0 || x > dimX - 1 || y < 0 || y > dimY - 1 || z < 0 || z > dimZ - 1) {
+            return 0;
+        }
+
+        int xI = (int) Math.round(x);
+        int yI = (int) Math.round(y);
+        int zI = (int) Math.round(z);
+
+        return getVoxel(xI, yI, zI);
     }
 
     /**
@@ -292,5 +297,9 @@ public class Volume {
         }
         
         return (float) v;
+    }
+    
+    public double getMaxIntersectionLength(){
+        return Math.sqrt(dimX * dimX + dimY * dimY + dimZ * dimZ);
     }
 }

@@ -9,6 +9,15 @@ package volvis;
  * @author michel
  */
 public class TFColor {
+
+    static TFColor interpolate(TFColor a, TFColor b, double alpha) {
+        return new TFColor(
+                a.r * alpha + b.r * (1-alpha),
+                a.g * alpha + b.g * (1 - alpha),
+                a.b * alpha + b.b * (1 - alpha),
+                a.a * alpha + b.a * (1 - alpha)
+        );
+    }
     public double r, g, b, a;
 
     public TFColor() {

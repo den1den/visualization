@@ -84,6 +84,17 @@ public class TransferFunction {
     public TFColor getColor(int value) {
         return LUT[computeLUTindex(value)];
     }
+    
+    public TFColor getColorLinInter(double val) {
+        double low = Math.floor(val);
+        double high = Math.ceil(val);
+        if(low == high){
+            return getColor((int)val);
+        }
+        TFColor lowC = getColor((int)low);
+        TFColor highC = getColor((int)high);
+        return TFColor.interpolate(lowC, highC, high - val);
+    }
 
     public int addControlPoint(int value, double alpha) {
         TFColor c = getColor(value);

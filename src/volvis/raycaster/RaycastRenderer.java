@@ -39,7 +39,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public enum ValueFunction{
         TRI_LINEAR,
-        ROUND_DOWN
+        ROUND_DOWN,
+        NEAREST
     }
 
     public RaycastRenderer() {
@@ -176,8 +177,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, viewMatrix, 0);
 
         long startTime = System.currentTimeMillis();
-        slicer();
-
+        
+        calcImage();
+        
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);
         panel.setSpeedLabel(Double.toString(runningTime));
@@ -231,7 +233,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     public enum RaycastOption {
         SLICER,
         MIP,
-        TRI_LINEAR
+        COMPOSITE
     }
 
     /**
@@ -239,7 +241,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      *
      * @param viewMatrix the current view orientation
      */
-    private void slicer() {
+    private void calcImage() {
 
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {
@@ -264,18 +266,21 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         switch (OPTION) {
             case SLICER:
-                defaultSlicer(uVec, vVec);
+                centerSlicer(uVec, vVec);
                 break;
             case MIP:
                 mip(viewVec, vVec, uVec);
                 break;
+            case COMPOSITE:
+                compositing(viewVec, vVec, uVec);
+                break;
             default:
-                throw new Error("Not implemented");
+                throw new AssertionError(OPTION.name());
         }
 
     }
 
-    private void defaultSlicer(double[] uVec, double[] vVec) {
+    private void centerSlicer(double[] uVec, double[] vVec) {
         // image is square
         int imageCenter = image.getWidth() / 2;
         
@@ -288,49 +293,36 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
-                double[] pixelCoord = new double[3];
-                pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
+                double x = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
-                pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
+                double y = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
                         + volumeCenter[1];
-                pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
+                double z = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
                 
-                float val = getVoxel(pixelCoord);
-
-                // Map the intensity to a grey value by linear scaling
-                voxelColor.r = val / max;
-                voxelColor.g = voxelColor.r;
-                voxelColor.b = voxelColor.r;
-                voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
-                setRGB(voxelColor, i, j);
+                float val = getVoxel(x, y, z);
+                
+                setPixel(i, j, val);
             }
         }
     }
 
-    public float getVoxel(double[] pixelCoord) throws AssertionError {
+    public float getVoxel(double x, double y, double z) throws AssertionError {
         float val;
         switch(VAL_FUNC){
             case TRI_LINEAR:
-                val = volume.getTriVoxel(pixelCoord);
+                val = volume.getTriVoxel(x, y, z);
                 break;
             case ROUND_DOWN:
-                val = volume.getVoxel(pixelCoord);
+                val = volume.getFloorVoxel(x, y, z);
+                break;
+            case NEAREST:
+                val = volume.getNNVoxel((float)x, (float)y, (float)z);
                 break;
             default:
                 throw new AssertionError(VAL_FUNC.name());
-                
         }
         return val;
-    }
-
-    public void setRGB(TFColor voxelColor, int i, int j) {
-        int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
-        int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
-        int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
-        int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
-        int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-        image.setRGB(i, j, pixelColor);
     }
 
     private void mip(double[] viewVec, double[] vVec, double[] uVec) {
@@ -339,21 +331,19 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         int min_steps;
         if(isInteractiveMode()){
-            min_steps = 10;
+            min_steps = 5;
         } else {
-            min_steps = 60;
+            min_steps = 20;
         }
         
         double[] volumeCenter = volume.getCenter();
 
         // sample on a plane through the origin of the volume data
-        double max = volume.getMaximum();
-        TFColor voxelColor;
-
+        final double max = volume.getMaximum();
         final double[] c = volume.getCenter();
         double[] q = new double[3];
         
-        double dV = volume.getMinDim() / min_steps;
+        double dV = volume.getMinIntersectionLength() / min_steps;
         double[] dq = VectorMath.getCopy(viewVec);
         VectorMath.setScale(dq, dV);
         
@@ -369,23 +359,95 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     continue;
                 }
                 
-                //double[] q1 = VectorMath.getCopy(q);
-                //VectorMath.setAddVector(q1, ts[1], viewVec);
-                
                 VectorMath.setAddVector(q, ts[0], viewVec); // sets q to q0
-                
                 double steps = Math.ceil((ts[1] - ts[0]) / dV);
                 float maxVal = 0;
                 for (int s = 0; s < steps; s++) {
-                    float val = getVoxel(q);
+                    float val = getVoxel(q[0], q[1], q[2]);
                     if(val > maxVal){
                         maxVal = val;
                     }
                     VectorMath.setAddVector(q, dq);
                 }
                 
-                voxelColor = tFunc.getColor(Math.round(maxVal));
-                setRGB(voxelColor, i, j);
+                setPixel(i, j, maxVal);
+            }
+        }
+    }
+    
+    private void setPixel(int i, int j, float val) {
+        setPixel(tFunc.getColor(Math.round(val)), i, j);
+    }
+
+    private void setPixel(TFColor color, int i, int j) {
+        int c_alpha = color.a <= 1.0 ? (int) Math.floor(color.a * 255) : 255;
+        int c_red = color.r <= 1.0 ? (int) Math.floor(color.r * 255) : 255;
+        int c_green = color.g <= 1.0 ? (int) Math.floor(color.g * 255) : 255;
+        int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
+        int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+        image.setRGB(i, j, pixelColor);
+    }
+    
+    
+    private void compositing(double[] viewVec, double[] vVec, double[] uVec){
+        // image is square
+        int imageCenter = image.getWidth() / 2;
+
+        int min_steps;
+        if (isInteractiveMode()) {
+            min_steps = 5;
+        } else {
+            min_steps = 5;
+        }
+
+        double[] volumeCenter = volume.getCenter();
+
+        // sample on a plane through the origin of the volume data
+        final double max = volume.getMaximum();
+        final double[] center = volume.getCenter();
+        double[] q = new double[3];
+
+        double dV = volume.getMinIntersectionLength() / min_steps;
+        
+        final int maxSteps = (int) Math.ceil(volume.getMaxIntersectionLength() / volume.getMinIntersectionLength() * min_steps);
+        final float[] compBuffer = new float[maxSteps];
+        
+        double[] dq = VectorMath.getCopy(viewVec);
+        VectorMath.setScale(dq, dV);
+
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+
+                VectorMath.setVector(q, volumeCenter);
+                VectorMath.setAddVector(q, (i - imageCenter), uVec);
+                VectorMath.setAddVector(q, (j - imageCenter), vVec);
+                
+                double[] ts = volume.intersect(q, viewVec);
+                if (ts == null) {
+                    // No intersection
+                    image.setRGB(i, j, 0);
+                    continue;
+                }
+                
+                VectorMath.setAddVector(q, ts[0], viewVec); // sets q to q0
+                int steps = (int) Math.ceil((ts[1] - ts[0]) / dV);
+                
+                TFColor c = tFunc.getColorLinInter(getVoxel(q[0], q[1], q[2]));
+                double cumAlpha = 1;
+                for (int k = 0; k < steps; k++) {
+                    VectorMath.setAddVector(q, dq);
+                    TFColor sampledC = tFunc.getColorLinInter(getVoxel(q[0], q[1], q[2]));
+                    double alpha = sampledC.a;
+                    
+                    c.r += sampledC.r * sampledC.a * cumAlpha;
+                    c.g += sampledC.g * sampledC.a * cumAlpha;
+                    c.b += sampledC.b * sampledC.a * cumAlpha;
+                    c.a += sampledC.a * sampledC.a * cumAlpha;
+                    
+                    cumAlpha *= (1 - alpha);
+                }
+                
+                setPixel(c, i, j);
             }
         }
     }
