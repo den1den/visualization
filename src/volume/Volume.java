@@ -158,188 +158,139 @@ public class Volume {
         }
         throw new IllegalArgumentException();
     }
-
     
-    public double[] intersect_inside(double[] dir) {
-        double[] r = VectorMath.extend_to_box(dir);
-        VectorMath.pairwiseMult(r, 0.5, getDim());
-        VectorMath.addVector(r, getCenter());
-        return r;
+    public double[] intersect(double[] p, double[] r){
+        assert VectorMath.isUnit(r);
+        final double x = p[0];
+        final double y = p[1];
+        final double z = p[2];
+        
+        final double dx = r[0];
+        final double dy = r[1];
+        final double dz = r[2];
+        
+        double t0 = Double.NEGATIVE_INFINITY, t1 = Double.POSITIVE_INFINITY;
+        final double EPSILON = 1./256/256/256;
+        
+        if(dx > EPSILON){
+            double t0_x = - x / dx;
+            double t1_x = (dimX - 1 - x) / dx;
+            
+            t0 = Math.min(t0_x, t1_x);
+            t1 = Math.max(t0_x, t1_x);
+        }
+        if(dy > EPSILON){
+            final double t0_y = - y / dy;
+            final double t1_y = (dimY - 1 - y) / dy;
+            
+            t0 = Math.max(t0, Math.min(t0_y, t1_y));
+            t1 = Math.min(t1, Math.max(t0_y, t1_y));
+        }
+        if(dz > EPSILON){
+            final double t0_z = - z / dz;
+            final double t1_z = (dimZ - 1 - z) / dz;
+
+            t0 = Math.max(t0, Math.min(t0_z, t1_z));
+            t1 = Math.min(t1, Math.max(t0_z, t1_z));
+        }
+        
+        if ( t0 < t1 ){
+            // intersects
+            return new double[]{t0, t1};
+        } else {
+            return null;
+        }
     }
 
-    final double zAngle = Math.tan(Math.sqrt(2));
-    final double xyAngle = Math.tan(1 / 2);
-    @Deprecated
-    public void intersect_inside_old(final double[] result, double[] dir) {
-        final double x = Math.abs(dir[0]);
-        final double y = Math.abs(dir[1]);
-        final double z = Math.abs(dir[2]);
-
-        final double projZ = Math.sqrt(x * x + y * y);
-        if (y == x) {
-            final double phi = Math.atan(z);
-            if(phi > Math.PI / 2) {
-                result[0] = 1;
-                result[1] = 1;
-                result[2] = Math.cos(Math.PI/2 - phi) * Math.sqrt(2);
-            } else if (phi < Math.PI / 2) {
-                final double th = Math.atan2(y, x);
-                final double rProjZlTop = Math.tan(phi);
-                result[0] = Math.cos(th) * rProjZlTop;
-                result[1] = Math.sin(th) * rProjZlTop;
-                result[2] = 1;
-            } else {
-                result[0] = 1;
-                result[1] = 1;
-                result[2] = 1;
-            }
-        } else {
-            final double th = Math.atan2(y, x);
-            final double rProjZX;
-            final double rProjZY;
-            final double rProjZl;
-            if (y < x) {
-                rProjZX = x * Math.cos(x);
-                rProjZY = 1;
-            } else {
-                rProjZX = 1;
-                rProjZY = x * Math.cos(Math.PI / 2 - y);
-            }
-            rProjZl = Math.sqrt(rProjZX * rProjZX + rProjZY * rProjZY);
-            if (z == rProjZl) {
-                result[0] = rProjZX;
-                result[1] = rProjZY;
-                result[2] = 1;
-            } else {
-                final double phi = Math.atan(z);
-                if (z < rProjZl) {
-                    result[0] = rProjZX;
-                    result[1] = rProjZY;
-                    result[2] = Math.tan(Math.PI/2 - phi) * rProjZl;
-                } else {
-                    final double rProjZlTop = Math.tan(phi);
-                    result[0] = Math.cos(th) * rProjZlTop;
-                    result[1] = Math.sin(th) * rProjZlTop;
-                    result[2] = 1;
-                }
-            }
-        }
-        result[0] *= dimX;
-        result[1] *= dimY;
-        result[2] *= dimZ;
+    public int getMinDim() {
+        return Math.min(dimX, Math.min(dimY, dimZ));
     }
 
     /**
-     * Calculate intersection based on
-     * {@link com.jogamp.opengl.math.geom.AABBox#getRayIntersection}
+     * Shortcut for getting a Voxel
      *
-     * @param result placeholder for result
-     * @param p starting point of ray
-     * @param dir direction of ray
-     * @return
+     * @param coord array of (x, y, z) coordinates
+     * @return Voxel at (x, y, z)
      */
-    @Deprecated
-    public double[] intersect(final double[] result, double[] p, double[] dir) {
-        final double[] maxT = {-1f, -1f, -1f};
-        final float epsilon = 0.01f;
-
-        boolean inside = true;
-
-        // Find candidate planes.
-        for (int i = 0; i < 3; i++) {
-            if (p[i] < 0) {
-                result[i] = 0;
-                inside = false;
-
-                // Calculate T distances to candidate planes
-                if (0 != Double.doubleToLongBits(dir[i])) {
-                    maxT[i] = -p[i] / dir[i];
-                }
-            } else if (p[i] > getDim(i)) {
-                result[i] = getDim(i);
-                inside = false;
-
-                // Calculate T distances to candidate planes
-                if (0 != Double.doubleToLongBits(dir[i])) {
-                    maxT[i] = (getDim(i) - p[i]) / dir[i];
-                }
-            }
+    public short getVoxel(double[] coord) {
+        if (coord[0] < 0 || coord[0] > dimX || coord[1] < 0 || coord[1] > dimY
+                || coord[2] < 0 || coord[2] > dimZ) {
+            return 0;
         }
 
-        // Ray origin inside bounding box
-        if (inside && false) {
-            System.arraycopy(p, 0, result, 0, 3);
-            return result;
+        int x = (int) Math.floor(coord[0]);
+        int y = (int) Math.floor(coord[1]);
+        int z = (int) Math.floor(coord[2]);
+
+        return getVoxel(x, y, z);
+    }
+
+    public float getTriVoxel(double[] coord) {
+        return getTriVoxel(coord[0], coord[1], coord[2]);
+    }
+
+    /**
+     * Getting a trilinear interpolated Voxel value
+     */
+    public float getTriVoxel(double x, double y, double z) {
+        int x0 = (int) Math.floor(x);
+        int x1 = (int) Math.ceil(x);
+        int y0 = (int) Math.floor(y);
+        int y1 = (int) Math.ceil(y);
+        int z0 = (int) Math.floor(z);
+        int z1 = (int) Math.ceil(z);
+        
+        if (x0 < 0 || x1 > dimX - 1 || y0 < 0 || y1 > dimY - 1 || z0 < 0 || z1 > dimZ - 1) {
+            return 0;
         }
 
-        // Get largest of the maxT's for final choice of intersection
-        int whichPlane = 0;
-        if (maxT[1] > maxT[whichPlane]) {
-            whichPlane = 1;
-        }
-        if (maxT[2] > maxT[whichPlane]) {
-            whichPlane = 2;
-        }
+        short v000 = getVoxel(x0, y0, z0);
+        short v001 = getVoxel(x0, y0, z1);
+        short v010 = getVoxel(x0, y1, z0);
+        short v011 = getVoxel(x0, y1, z1);
+        short v100 = getVoxel(x1, y0, z0);
+        short v101 = getVoxel(x1, y0, z1);
+        short v110 = getVoxel(x1, y1, z0);
+        short v111 = getVoxel(x1, y1, z1);
 
-        boolean assumeIntersection = true;
-        if (!assumeIntersection) {
-            // Check final candidate actually inside box
-            if (0 != (Double.doubleToLongBits(maxT[whichPlane]) & 0x80000000)) {
-                return null;
-            }
-
-            switch (whichPlane) {
-                case 0:
-                    result[1] = p[1] + maxT[whichPlane] * dir[1];
-                    if (result[1] < -epsilon || result[1] > dimY + epsilon) {
-                        return null;
-                    }
-                    result[2] = p[2] + maxT[whichPlane] * dir[2];
-                    if (result[2] < -epsilon || result[2] > dimZ + epsilon) {
-                        return null;
-                    }
-                    break;
-                case 1:
-                    result[0] = p[0] + maxT[whichPlane] * dir[0];
-                    if (result[0] < -epsilon || result[0] > dimX + epsilon) {
-                        return null;
-                    }
-                    result[2] = p[2] + maxT[whichPlane] * dir[2];
-                    if (result[2] < -epsilon || result[2] > dimZ + epsilon) {
-                        return null;
-                    }
-                    break;
-                case 2:
-                    result[0] = p[0] + maxT[whichPlane] * dir[0];
-                    if (result[0] < -epsilon || result[0] > dimX + epsilon) {
-                        return null;
-                    }
-                    result[1] = p[1] + maxT[whichPlane] * dir[1];
-                    if (result[1] < -epsilon || result[1] > dimY + epsilon) {
-                        return null;
-                    }
-                    break;
-                default:
-                    throw new Error();
-            }
+        double v00, v01, v10, v11;
+        if(x0 == x1){
+            v00 = (double) (v000);
+            v01 = (double) (v001);
+            v10 = (double) (v010);
+            v11 = (double) (v011);
         } else {
-            switch (whichPlane) {
-                case 0:
-                    result[1] = p[1] + maxT[whichPlane] * dir[1];
-                    result[2] = p[2] + maxT[whichPlane] * dir[2];
-                    break;
-                case 1:
-                    result[0] = p[0] + maxT[whichPlane] * dir[0];
-                    result[2] = p[2] + maxT[whichPlane] * dir[2];
-                    break;
-                case 2:
-                    result[0] = p[0] + maxT[whichPlane] * dir[0];
-                    result[1] = p[1] + maxT[whichPlane] * dir[1];
-                    break;
-                default:
-                    throw new Error();
-            }
+            double dx = (x - x0) / (x1 - x0);
+            double dxI = 1 - dx;
+            
+            v00 = (double) (v000) * dxI + (double) (v100) * dx;
+            v01 = (double) (v001) * dxI + (double) (v101) * dx;
+            v10 = (double) (v010) * dxI + (double) (v110) * dx;
+            v11 = (double) (v011) * dxI + (double) (v111) * dx;
         }
-        return result; // ray hits box
+        
+        double v0, v1;
+        if(y0 == y1){
+            v0 = v00;
+            v1 = v01;
+        } else {
+            double dy = (y - y0) / (y1 - y0);
+            double dyI = 1 - dy;
+
+            v0 = v00 * dyI + v10 * dy;
+            v1 = v01 * dyI + v11 * dy;
+        }
+        
+        double v;
+        if(z0 == z1){
+            v = v0;
+        } else {
+            double dz = (z - z0) / (z1 - z0);
+            double dzI = 1 - dz;
+
+            v = v0 * dzI + v1 * dz;
+        }
+        
+        return (float) v;
     }
 }

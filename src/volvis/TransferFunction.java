@@ -27,7 +27,7 @@ public class TransferFunction {
         sRange = sMax - sMin;
         controlPoints = new ArrayList<ControlPoint>();
 
-        controlPoints.add(new ControlPoint(min, new TFColor(0.0, 0.0, 0.0, 0.0)));
+        controlPoints.add(new ControlPoint(min, new TFColor(.5, .5, .5, .1)));
         controlPoints.add(new ControlPoint(max, new TFColor(1.0, 1.0, 1.0, 1.0)));
 
         LUTsize = sRange;
@@ -38,13 +38,29 @@ public class TransferFunction {
     }
     
     
-    public void setTestFunc() {
-        // control points for orange data set
-        addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-        addControlPoint(40, 0.0, 0.0, 0.0, 0.0);
-        addControlPoint(75, 1.0, 0.666, 0.0, 1.0);
-        addControlPoint(103, 0.0, 0.0, 0.0, 0.5);
-        addControlPoint(205, 0.0, 0.0, 0.0, 0.0);
+    public void addDefaultControlPoints(String filename) {
+        if(filename.equals("orange.fld")){
+            // control points for orange data set
+            addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+            addControlPoint(40, 0.0, 0.0, 0.0, 0.0);
+            addControlPoint(75, 1.0, 0.666, 0.0, 1.0);
+            addControlPoint(103, 0.0, 0.0, 0.0, 0.5);
+            addControlPoint(205, 0.0, 0.0, 0.0, 0.0);
+        } else if (filename.equals("bonsai.fld")) {
+            addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+            addControlPoint(29, 0.0, 1.0, 0.2, 0.08);
+            addControlPoint(34, 0.0, 1.0, 0.0, 0.89);
+            addControlPoint(61, 0.6, 0.2, 0.0, 0.06);
+            addControlPoint(74, 0.5329329329329329, 0.2, 0.0, 0.77);
+            addControlPoint(124, 0.47927927927927927, 0.2, 0.0, 0.97);
+            addControlPoint(143, 0.47047047047047047, 0.2, 0.0, 0.97);
+            addControlPoint(155, 0.4330779759351188, 0.2, 0.0, 0.37);
+            addControlPoint(192, 0.4, 0.2, 0.0, 0.0);
+            addControlPoint(193, 0.0, 0.2, 0.2, 0.99);
+            addControlPoint(253, 0.0, 0.0, 0.0, 1.0);
+        } else {
+            System.out.println("No default transfer function known");
+        }
     }
 
     public int getMinimum() {
@@ -67,6 +83,16 @@ public class TransferFunction {
 
     public TFColor getColor(int value) {
         return LUT[computeLUTindex(value)];
+    }
+
+    public int addControlPoint(int value, double alpha) {
+        TFColor c = getColor(value);
+        return addControlPoint(value, c.r, c.g, c.b, alpha);
+    }
+
+    public int addControlPoint(int value) {
+        TFColor c = getColor(value);
+        return addControlPoint(value, c.r, c.g, c.b, c.a);
     }
 
     
@@ -185,4 +211,23 @@ public class TransferFunction {
     private TFColor[] LUT;
     private int LUTsize = 4095;
     private ArrayList<ControlPoint> controlPoints;
+    
+    public class TFPrinter implements TFChangeListener {
+
+        private String filename;
+
+        public TFPrinter(String filename) {
+            this.filename = filename;
+        }
+
+        @Override
+        public void changed() {
+            System.out.print("if(filename.equals(\"" + filename + "\")){");
+            for (ControlPoint p : controlPoints) {
+                System.out.print("addControlPoint("+p.value+", "+p.color.r+", "+p.color.g +", " + p.color.b +", " + p.color.a+"); ");
+            }
+            System.out.println("\n}");
+        }
+        
+    }
 }

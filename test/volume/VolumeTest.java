@@ -47,21 +47,23 @@ public class VolumeTest extends TestCase {
     @Test
     public void testIntersect() {
         System.out.println("intersect");
-        double[] p = instance.getCenter();
-        double[] dir = new double[]{0, 1, 0};
-        double[] expResult = new double[]{p[0], instance.getDimY(), p[1]};
-        double[] result = instance.intersect_inside(dir);
-        assertArrayEquals(expResult, result);
+        double[] p;
+        double[] r;
+        double[] expResult;
+        double[] result;
         
-        dir = VectorMath.norm(new double[]{1, 1, 1});
-        expResult = instance.getDim();
-        result = instance.intersect_inside(dir);
-        assertArrayEquals(expResult, result);
+        r = new double[]{1, 0, 0};
+        p = new double[]{-10, 0, 0};
+        expResult = new double[]{0, 0, 0};
+        result = instance.intersect(p, r);
+        VectorMath.setAddVector(p, result[0], r);
+        assertArrayEquals(p, expResult);
         
-        dir = VectorMath.norm(new double[]{-1, -1, -1});
-        expResult = VectorMath.zero();
-        result = instance.intersect_inside(dir);
-        assertArrayEquals(expResult, result);
+        r = new double[]{2, 5, 1};
+        p = new double[]{0, -.1, 0};
+        result = instance.intersect(p, r);
+        VectorMath.setAddVector(p, result[0], r);
+        assertEquals(0, p[0]);
     }
     
     void assertArrayEquals(double[] arr, double[] arr2){

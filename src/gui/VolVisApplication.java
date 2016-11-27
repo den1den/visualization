@@ -138,7 +138,7 @@ public class VolVisApplication extends javax.swing.JFrame {
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
         // TODO add your handling code here:
-        JFileChooser fc = new JFileChooser();
+        JFileChooser fc = new JFileChooser("/home/dennis/repos/Visualization/set1_data");
         fc.setFileFilter(new FileFilter() {
 
             @Override
@@ -176,6 +176,8 @@ public class VolVisApplication extends javax.swing.JFrame {
         tabbedPanel.remove(raycastRenderer.getTFPanel());
         tabbedPanel.remove(raycastRenderer.getTF2DPanel());
         raycastRenderer.setVolume(volume);
+        raycastRenderer.tFunc.addTFChangeListener(raycastRenderer.tFunc.new TFPrinter(file.getName()));
+        raycastRenderer.tFunc.addDefaultControlPoints(file.getName());
         tabbedPanel.addTab("Transfer function", raycastRenderer.getTFPanel());
         tabbedPanel.addTab("2D transfer function", raycastRenderer.getTF2DPanel());
         visualization.update();

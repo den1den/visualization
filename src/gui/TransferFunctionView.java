@@ -236,7 +236,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
                     //System.out.println("s = " + s);
                     double a = (h - pos.y) / h;
                     //System.out.println("a = " + a);
-                    selected = tfunc.addControlPoint(s, 0.0, 0.0, 0.0, a);
+                    selected = tfunc.addControlPoint(s, a);
                     TransferFunction.ControlPoint cp = controlPoints.get(selected);
                     editor.setSelectedInfo(selected, cp.value, cp.color.a, cp.color);
                     dragStart = e.getPoint();

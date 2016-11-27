@@ -5,6 +5,7 @@
 package volvis;
 
 import com.jogamp.opengl.GL2;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import util.TFChangeListener;
 
@@ -24,6 +25,10 @@ public abstract class Renderer {
 
     public void setInteractiveMode(boolean flag) {
         interactiveMode = flag;
+    }
+
+    public boolean isInteractiveMode() {
+        return interactiveMode;
     }
     
     public void setWinWidth(int w) {
@@ -57,4 +62,13 @@ public abstract class Renderer {
     }
     
     public abstract void visualize(GL2 gl);
+
+    public static void setRGB(BufferedImage image, int i, int j, TFColor voxelColor) {
+        int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
+        int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
+        int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
+        int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
+        int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+        image.setRGB(i, j, pixelColor);
+    }
 }
