@@ -82,6 +82,14 @@ public class Volume {
         return dimZ;
     }
 
+    public double[] getMinPos() {
+        return VectorMath.getZero();
+    }
+
+    public double[] getMaxPos() {
+        return new double[]{dimX - 1, dimY - 1, dimZ - 1};
+    }
+
     /**
      * @return minimum intensity
      */
@@ -157,7 +165,7 @@ public class Volume {
         throw new IllegalArgumentException();
     }
     
-    public double[] intersect(double[] p, double[] r){
+    public boolean intersect(double[] result, double[] p, double[] r){
         assert VectorMath.isUnit(r);
         final double x = p[0];
         final double y = p[1];
@@ -167,37 +175,33 @@ public class Volume {
         final double dy = r[1];
         final double dz = r[2];
         
-        double t0 = Double.NEGATIVE_INFINITY, t1 = Double.POSITIVE_INFINITY;
+        result[0] = Double.NEGATIVE_INFINITY;
+        result[1] = Double.POSITIVE_INFINITY;
         final double EPSILON = 1./256/256/256;
         
-        if(dx > EPSILON){
+        if(Math.abs(dx) > EPSILON){
             double t0_x = - x / dx;
             double t1_x = (dimX - 1 - x) / dx;
             
-            t0 = Math.min(t0_x, t1_x);
-            t1 = Math.max(t0_x, t1_x);
+            result[0] = Math.min(t0_x, t1_x);
+            result[1] = Math.max(t0_x, t1_x);
         }
-        if(dy > EPSILON){
+        if(Math.abs(dy) > EPSILON){
             final double t0_y = - y / dy;
             final double t1_y = (dimY - 1 - y) / dy;
             
-            t0 = Math.max(t0, Math.min(t0_y, t1_y));
-            t1 = Math.min(t1, Math.max(t0_y, t1_y));
+            result[0] = Math.max(result[0], Math.min(t0_y, t1_y));
+            result[1] = Math.min(result[1], Math.max(t0_y, t1_y));
         }
-        if(dz > EPSILON){
+        if(Math.abs(dz) > EPSILON){
             final double t0_z = - z / dz;
             final double t1_z = (dimZ - 1 - z) / dz;
 
-            t0 = Math.max(t0, Math.min(t0_z, t1_z));
-            t1 = Math.min(t1, Math.max(t0_z, t1_z));
+            result[0] = Math.max(result[0], Math.min(t0_z, t1_z));
+            result[1] = Math.min(result[1], Math.max(t0_z, t1_z));
         }
         
-        if ( t0 < t1 ){
-            // intersects
-            return new double[]{t0, t1};
-        } else {
-            return null;
-        }
+        return result[0] < result[1];
     }
 
     public int getMinIntersectionLength() {
@@ -301,5 +305,13 @@ public class Volume {
     
     public double getMaxIntersectionLength(){
         return Math.sqrt(dimX * dimX + dimY * dimY + dimZ * dimZ);
+    }
+
+    public double[] getLogHistogram() {
+        double[] logHistogram = new double[histogram.length];
+        for (int i = 0; i < histogram.length; i++) {
+            logHistogram[i] = Math.log(histogram[i]);
+        }
+        return logHistogram;
     }
 }

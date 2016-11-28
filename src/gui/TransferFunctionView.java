@@ -29,12 +29,12 @@ public class TransferFunctionView extends javax.swing.JPanel {
     private int selected;
     private Point dragStart;
     private TransferFunctionEditor editor;
-    private int[] histogram;
+    private double[] histogram;
 
     /**
      * Creates new form TransferFunctionView
      */
-    public TransferFunctionView(TransferFunction tfunc, int[] histogram, TransferFunctionEditor ed) {
+    public TransferFunctionView(TransferFunction tfunc, double[] histogram, TransferFunctionEditor ed) {
         initComponents();
         this.tfunc = tfunc;
         this.editor = ed;
@@ -59,7 +59,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
         
         //draw histogram
         int nrBins = histogram.length;
-        int maxBinHeigth = 0;
+        double maxBinHeigth = 0;
         for (int i = 0; i < nrBins; i++) {
             maxBinHeigth = histogram[i] > maxBinHeigth ? histogram[i] : maxBinHeigth;
         }

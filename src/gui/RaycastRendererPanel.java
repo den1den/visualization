@@ -4,6 +4,10 @@
  */
 package gui;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
 import javax.swing.JOptionPane;
 import volvis.raycaster.RaycastRenderer;
 
@@ -23,11 +27,13 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     public RaycastRendererPanel(RaycastRenderer renderer) {
         initComponents();
         this.renderer = renderer;
+        this.jTextFieldSteps.setText(String.valueOf(renderer.targetSteps));
+        
     }
 
     public void setSpeedLabel(String text) {
         renderingSpeedLabel.setText(text);
-    }
+            }
     
     
     /**
@@ -48,6 +54,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
         jComboBox1 = new javax.swing.JComboBox<>();
+        jTextFieldSteps = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -100,26 +108,39 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
+        jTextFieldSteps.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldStepsActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("minSteps:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(renderingSpeedLabel))
-                    .addComponent(compositingButton, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tf2dButton, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                    .addComponent(compositingButton)
+                    .addComponent(tf2dButton)
+                    .addComponent(shadingCheckbox)
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(slicerButton)
                         .addGap(150, 150, 150)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(shadingCheckbox, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(mipButton, javax.swing.GroupLayout.Alignment.LEADING))
-                .addContainerGap(217, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldSteps, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(mipButton))
+                .addContainerGap(159, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -133,14 +154,17 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                     .addComponent(slicerButton)
                     .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(mipButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(mipButton)
+                    .addComponent(jTextFieldSteps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(compositingButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tf2dButton)
                 .addGap(18, 18, 18)
                 .addComponent(shadingCheckbox)
-                .addContainerGap(136, Short.MAX_VALUE))
+                .addContainerGap(134, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -184,15 +208,35 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         renderer.changed();
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
+    private void jTextFieldStepsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldStepsActionPerformed
+        try{
+            renderer.targetSteps = Integer.valueOf(jTextFieldSteps.getText());
+        } catch (NumberFormatException e){
+            JOptionPane.showMessageDialog(this, "Only numbers allowed");
+            jTextFieldSteps.setText(String.valueOf(renderer.targetSteps));
+        }
+        renderer.changed();
+    }//GEN-LAST:event_jTextFieldStepsActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JTextField jTextFieldSteps;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;
     private javax.swing.JCheckBox shadingCheckbox;
     private javax.swing.JRadioButton slicerButton;
     private javax.swing.JRadioButton tf2dButton;
     // End of variables declaration//GEN-END:variables
+
+    public double runningTime = 0;
+    public void setSpeed(double runningTime) {
+        this.runningTime = runningTime;
+        setSpeedLabel(String.valueOf(this.runningTime));
+    }public double getSpeed(){
+        return runningTime;
+    }
 }

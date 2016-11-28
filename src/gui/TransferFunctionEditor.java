@@ -23,7 +23,7 @@ public class TransferFunctionEditor extends javax.swing.JPanel {
     /**
      * Creates new form TransferFunctionEditor
      */
-    public TransferFunctionEditor(TransferFunction tfunc, int[] histogram) {
+    public TransferFunctionEditor(TransferFunction tfunc, double[] histogram) {
         initComponents();
 
         this.tfunc = tfunc;

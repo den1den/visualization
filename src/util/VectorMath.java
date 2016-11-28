@@ -34,7 +34,7 @@ public class VectorMath {
     }
 
     // compute distance between vectors v and w
-    public static double getDistance(double[] v, double[] w) {
+    public static double distance(double[] v, double[] w) {
         double[] tmp = new double[3];
         VectorMath.setVector(tmp, v[0]-w[0], v[1]-w[1], v[2]-w[2]);
         return Math.sqrt(VectorMath.setDotProduct(tmp, tmp));
@@ -48,9 +48,13 @@ public class VectorMath {
         return r;
     }
     
-    // compute length of vector v
     public static double getLength(double[] v) {
         return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+    }
+
+    // compute length of vector v
+    public static double length(double[] v) {
+        return getLength(v);
     }
 
     public static void setAddVector(double[] v, double[] add) {
@@ -116,7 +120,7 @@ public class VectorMath {
     }
 
     public static boolean isUnit(double[] v) {
-        return length2(v) == 1;
+        return length(v) == 1;
     }
 
     public static double length2(double[] v) {
@@ -126,6 +130,31 @@ public class VectorMath {
     public static double[] newVector(double x, double y, double z) {
         return new double[]{
             x, y, z
+        };
+    }
+
+    public static double[] getAddVector(double[] v, double s, double[] d) {
+        return new double[]{
+            v[0] + s * d[0],
+            v[1] + s * d[1],
+            v[2] + s * d[2]
+        };
+    }
+
+    public static double[] getNormalized(double[] v) {
+        double l = getLength(v);
+        return new double[]{
+            v[0] / l,
+            v[1] / l,
+            v[2] / l
+        };
+    }
+
+    public static double[] getScale(double[] v, double s) {
+        return new double[]{
+            v[0] * s,
+            v[1] * s,
+            v[2] * s
         };
     }
 }
