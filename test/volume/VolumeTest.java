@@ -54,7 +54,8 @@ public class VolumeTest extends TestCase {
         p = new double[]{-1, -1, -1};
         expResult0 = instance.getMinPos();
         expResult1 = instance.getMaxPos();
-        t = instance.intersect(p, r);
+        t = new double[2];
+        instance.intersect(t, p, r);
         assertArrayEquals(VectorMath.getAddVector(p, t[0], r), expResult0);
         assertArrayEquals(VectorMath.getAddVector(p, t[1], r), expResult1);
         

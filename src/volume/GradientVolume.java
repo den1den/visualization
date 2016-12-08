@@ -14,10 +14,9 @@ public abstract class GradientVolume {
     protected int dimX;
     protected int dimY;
     protected int dimZ;
-    protected VoxelGradient zero = new VoxelGradient();
-    VoxelGradient[] data;
-    Volume volume;
-    double maxmag;
+    protected VoxelGradient[] data;
+    protected Volume volume;
+    protected double maxmag;
 
     public GradientVolume(Volume vol) {
         volume = vol;
@@ -27,6 +26,9 @@ public abstract class GradientVolume {
         data = new VoxelGradient[dimX * dimY * dimZ];
         maxmag = -1.0;
         compute();
+        if(data[0] == null || data[data.length - 1] == null) {
+            throw new Error();
+        }
     }
 
     public VoxelGradient getGradient(int x, int y, int z) {

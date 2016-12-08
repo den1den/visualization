@@ -4,6 +4,7 @@
  */
 package volvis.raycaster;
 
+import volume.ApxGradientVolume;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.texture.Texture;
@@ -74,7 +75,7 @@ public class RaycastRenderer extends Renderer {
         volume = vol;
 
         System.out.println("Computing gradients");
-        gradients = new ZeroGradientVolume(vol);
+        gradients = new ApxGradientVolume(vol);
 
         // set up image for storing the resulting rendering
         // the image width and height are equal to the length of the volume diagonal
@@ -242,7 +243,7 @@ public class RaycastRenderer extends Renderer {
     public enum RaycastOption {
         SLICER,
         MIP,
-        COMPOSITE
+        COMPOSITE, TF2D
     }
 
     /**
@@ -282,6 +283,9 @@ public class RaycastRenderer extends Renderer {
                 break;
             case COMPOSITE:
                 compositing(viewVec, vVec, uVec);
+                break;
+            case TF2D:
+                tf2d(viewVec, vVec, uVec);
                 break;
             default:
                 throw new AssertionError(OPTION.name());
@@ -469,6 +473,74 @@ public class RaycastRenderer extends Renderer {
                 setPixel(new TFColor(r, g, b, 1), i, j);
                 
                 if(i % 100 == 0 && j == i){
+                    System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);
+                }
+            }
+        }
+    }
+    
+    private void tf2d(double[] viewVec, double[] vVec, double[] uVec) {
+        
+        
+        
+        // image
+        final int imageCenter = image.getWidth() / 2;
+
+        // volume
+        final double[] volumeCenter = volume.getCenter();
+
+        final int minSteps;
+        if (isInteractiveMode()) {
+            minSteps = getMinSteps();
+        } else {
+            minSteps = targetSteps;
+        }
+        final int maxSteps = (int) Math.ceil(volume.getMaxIntersectionLength() / volume.getMinIntersectionLength() * minSteps);
+
+        // q = sample on a line through the origin of the volume data
+        double[] q = new double[3];
+        double[] ts = new double[2]; // intersection points with bounding box
+
+        double[] dq = VectorMath.getCopy(viewVec);
+        double dv = (double) (volume.getMinIntersectionLength()) / (minSteps + 1);
+        VectorMath.setScale(dq, dv);
+
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+                // q = projection of a pixel to the 'slicer'-plane through image origin
+                VectorMath.setVector(q, volumeCenter);
+                VectorMath.setAddVector(q, (i - imageCenter), uVec);
+                VectorMath.setAddVector(q, (j - imageCenter), vVec);
+
+                // calculate raycast intersection
+                if (!volume.intersect(ts, q, viewVec)) {
+                    // No intersection
+                    image.setRGB(i, j, 0);
+                    continue;
+                }
+                final double t0 = ts[0];
+                final double t1 = ts[1];
+
+                VectorMath.setAddVector(q, t0, viewVec);
+
+                int steps = (int) Math.ceil((t1 - t0) / dv); // assert |viewVec|=1
+
+                double r = 0, g = 0, b = 0;
+                double cumAlpha = 1;
+
+                for (int k = 0; k < steps + 1; k++) {
+                    TFColor sampledC = tFunc.getColor((int) getVoxel(q[0], q[1], q[2]));
+                    r += sampledC.r * sampledC.a * cumAlpha;
+                    g += sampledC.g * sampledC.a * cumAlpha;
+                    b += sampledC.b * sampledC.a * cumAlpha;
+                    cumAlpha = cumAlpha * (1 - sampledC.a);
+
+                    VectorMath.setAddVector(q, dq);
+                }
+
+                setPixel(new TFColor(r, g, b, 1), i, j);
+
+                if (i % 100 == 0 && j == i) {
                     System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);
                 }
             }

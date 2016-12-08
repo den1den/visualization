@@ -44,6 +44,16 @@ public class Volume {
     public short getVoxel(int x, int y, int z) {
         return data[x + dimX * (y + dimY * z)];
     }
+    
+    public short getVoxelSafe(int x, int y, int z){
+        assert x >= 0;
+        assert x <= dimX - 1;
+        assert y >= 0;
+        assert y <= dimY - 1;
+        assert z >= 0;
+        assert z <= dimZ - 1;
+        return data[x + dimX * (y + dimY * z)];
+    }
 
     public void setVoxel(int x, int y, int z, short value) {
         data[x + dimX * (y + dimY * z)] = value;
