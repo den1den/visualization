@@ -4,11 +4,15 @@
  */
 package gui;
 
+import volvis.raycaster.TF2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import javax.swing.JOptionPane;
+import volvis.raycaster.CenterSlicer;
+import volvis.raycaster.Compositing;
+import volvis.raycaster.Mip;
 import volvis.raycaster.RaycastRenderer;
 
 /**
@@ -169,22 +173,19 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
-        renderer.OPTION = RaycastRenderer.RaycastOption.MIP;
-        renderer.changed();
+        renderer.setRendererClass(new Mip());
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        renderer.OPTION = RaycastRenderer.RaycastOption.SLICER;
-        renderer.changed();
+        renderer.setRendererClass(new CenterSlicer());
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        renderer.OPTION = RaycastRenderer.RaycastOption.COMPOSITE;
-        renderer.changed();
+        renderer.setRendererClass(new Compositing());
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        renderer.OPTION = RaycastRenderer.RaycastOption.TF2D;
+        renderer.setRendererClass(new TF2D());
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
