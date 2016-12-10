@@ -5,7 +5,9 @@
  */
 package volvis.raycaster;
 
+import java.awt.image.BufferedImage;
 import util.VectorMath;
+import volume.Volume;
 import volvis.TFColor;
 
 /**
@@ -14,30 +16,39 @@ import volvis.TFColor;
  */
 public class CenterSlicer extends RaycastRenderer.RendererClass{
 
+    public CenterSlicer(RaycastRenderer r) {
+        super(r);
+    }
+
     @Override
     protected void render(double[] viewVec, double[] uVec, double[] vVec) {
-        // image is square
-        int imageCenter = data.image.getWidth() / 2;
+        // image
+        BufferedImage image = r.getImage();
+        final int imageCenter = image.getWidth() / 2;
+        final int imageHeight = r.image.getWidth();
+        final int imageWidth = r.image.getWidth();
 
-        double[] volumeCenter = new double[3];
-        VectorMath.setVector(volumeCenter, data.volume.getDimX() / 2, data.volume.getDimY() / 2, data.volume.getDimZ() / 2);
+        // volume
+        Volume volume = r.getVolume();
+        final double[] volumeCenter = volume.getCenter();
+
+        // color
+        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
 
         // sample on a plane through the origin of the volume data
-        double max = data.volume.getMaximum();
-        TFColor voxelColor = new TFColor();
+        TFColor color;
 
-        for (int j = 0; j < data.image.getHeight(); j++) {
-            for (int i = 0; i < data.image.getWidth(); i++) {
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
                 double x = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
                 double y = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
                         + volumeCenter[1];
                 double z = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
-
-                float val = data.getVoxel(x, y, z);
-
-                data.setPixel(i, j, val);
+                
+                color = r.getColor(x, y, z);
+                r.setPixel(i, j, color);
             }
         }
     }

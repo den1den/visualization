@@ -13,7 +13,8 @@ import volvis.raycaster.RaycastRenderer;
  */
 public class TF2D extends RaycastRenderer.RendererClass {
 
-    public TF2D() {
+    public TF2D(RaycastRenderer r) {
+        super(r);
     }
 
     @Override

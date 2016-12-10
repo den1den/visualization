@@ -5,10 +5,6 @@
  */
 package volume;
 
-import volume.GradientVolume;
-import volume.Volume;
-import volume.VoxelGradient;
-
 /**
  *
  * @author dennis
@@ -25,7 +21,6 @@ public class ApxGradientVolume extends GradientVolume {
 
     @Override
     protected void compute() {
-        // this just initializes all gradients to the vector (0,0,0)
         for (int z = 0; z < super.dimZ; z++) {
             for (int y = 0; y < super.dimY; y++) {
                 for (int x = 0; x < super.dimX; x++) {
@@ -57,7 +52,7 @@ public class ApxGradientVolume extends GradientVolume {
                     
                     int i = x + dimX * (y + dimY * z);
                     
-                    this.data[i] = v;
+                    setVoxel(i, v);
                 }
             }
         }

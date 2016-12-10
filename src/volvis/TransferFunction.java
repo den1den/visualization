@@ -50,15 +50,18 @@ public class TransferFunction {
 
     public void addDefaultControlPoints(String filename) {
         if (true) {
-            //addRainbowControllPoints();
-            //return;
+            addRainbowControllPoints();
+            return;
         }
         if (filename.equals("orange.fld")) {
-            // control points for orange data set
             addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(40, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(75, 1.0, 0.666, 0.0, 1.0);
-            addControlPoint(103, 0.0, 0.0, 0.0, 0.5);
+            addControlPoint(21, 0.0, 0.0, 0.0, 0.0);
+            addControlPoint(38, 0.25, 0.25, 0.25, 0.07);
+            addControlPoint(41, 1.0, 0.4, 0.0, 0.24);
+            addControlPoint(43, 0.4473684210526316, 0.2979473684210526, 0.0, 0.1);
+            addControlPoint(72, 0.4842105263157895, 0.32248421052631576, 0.0, 0.36);
+            addControlPoint(78, 1.0, 0.666, 0.0, 0.76);
+            addControlPoint(103, 0.0, 0.0, 0.0, 0.41);
             addControlPoint(205, 0.0, 0.0, 0.0, 0.0);
         } else if (filename.equals("bonsai.fld")) {
             addControlPoint(0, 0.0, 0.0, 0.0, 0.0);

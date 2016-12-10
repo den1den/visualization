@@ -4,11 +4,15 @@
  */
 package volume;
 
+import java.io.Serializable;
+
 /**
  * Vector
  * @author michel
  */
-public class VoxelGradient {
+public class VoxelGradient implements Serializable{
+
+    private static final long serialVersionUID = -8890477117370292870L;
 
     public float x, y, z;
     public float mag;

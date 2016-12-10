@@ -5,7 +5,7 @@
 package volume;
 
 /**
- * 
+ *
  * @author michel
  */
 public class ZeroGradientVolume extends GradientVolume {
@@ -18,9 +18,9 @@ public class ZeroGradientVolume extends GradientVolume {
     protected void compute() {
         // this just initializes all gradients to the vector (0,0,0)
         VoxelGradient zero = new VoxelGradient();
-        for (int i=0; i<data.length; i++) {
-            data[i] = zero;
+        for (int i = 0; i < getLength(); i++) {
+            setVoxel(i, zero);
         }
     }
-    
+
 }

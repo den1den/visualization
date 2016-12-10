@@ -5,46 +5,61 @@
  */
 package volvis.raycaster;
 
+import java.awt.image.BufferedImage;
 import util.VectorMath;
+import volume.Volume;
+import volvis.TFColor;
+import volvis.TransferFunction;
 
 
 public class Mip extends RaycastRenderer.RendererClass {
 
+    public Mip(RaycastRenderer r) {
+        super(r);
+    }
+
     @Override
     protected void render(double[] viewVec, double[] uVec, double[] vVec) {
         // image
-        final int imageCenter = data.image.getWidth() / 2;
+        BufferedImage image = r.getImage();
+        final int imageCenter = image.getWidth() / 2;
+        final int imageHeight = r.image.getWidth();
+        final int imageWidth = r.image.getWidth();
 
         // volume
-        final double[] volumeCenter = data.volume.getCenter();
+        Volume volume = r.getVolume();
+        final double[] volumeCenter = volume.getCenter();
+
+        // color
+        final TransferFunction tf = r.getTF();
 
         final int minSteps;
-        if (data.isInteractiveMode()) {
-            minSteps = data.getMinSteps();
+        if (r.isInteractiveMode()) {
+            minSteps = r.minSteps;
         } else {
-            minSteps = data.targetSteps;
+            minSteps = r.targetSteps;
         }
-        final int maxSteps = (int) Math.ceil(data.volume.getMaxIntersectionLength() / data.volume.getMinIntersectionLength() * minSteps);
+        final int maxSteps = (int) Math.ceil(volume.getMaxIntersectionLength() / volume.getMinIntersectionLength() * minSteps);
 
         // q = sample on a line through the origin of the volume data
         double[] q = new double[3];
         double[] ts = new double[2]; // intersection points with bounding box
 
         double[] dq = VectorMath.getCopy(viewVec);
-        double dv = (double) (data.volume.getMinIntersectionLength()) / (minSteps + 1);
+        double dv = (double) (volume.getMinIntersectionLength()) / (minSteps + 1);
         VectorMath.setScale(dq, dv);
 
-        for (int j = 0; j < data.image.getHeight(); j++) {
-            for (int i = 0; i < data.image.getWidth(); i++) {
+        for (int j = 0; j < imageHeight; j++) {
+            for (int i = 0; i < imageWidth; i++) {
                 // q = projection of a pixel to the 'slicer'-plane through image origin
                 VectorMath.setVector(q, volumeCenter);
                 VectorMath.setAddVector(q, (i - imageCenter), uVec);
                 VectorMath.setAddVector(q, (j - imageCenter), vVec);
 
                 // calculate raycast intersection
-                if (!data.volume.intersect(ts, q, viewVec)) {
+                if (!volume.intersect(ts, q, viewVec)) {
                     // No intersection
-                    data.image.setRGB(i, j, 0);
+                    image.setRGB(i, j, 0);
                     continue;
                 }
                 final double t0 = ts[0];
@@ -57,18 +72,18 @@ public class Mip extends RaycastRenderer.RendererClass {
                 float maxVoxel = 0;
 
                 for (int k = 0; k < steps + 1; k++) {
-                    float voxel = data.getVoxel(q[0], q[1], q[2]);
+                    float voxel = r.getVoxel(q[0], q[1], q[2]);
                     if (voxel > maxVoxel) {
                         maxVoxel = voxel;
                     }
 
                     VectorMath.setAddVector(q, dq);
                 }
-
-                data.setPixel(data.tFunc.getColor((int) maxVoxel), i, j);
+                TFColor color = tf.getColor((int) maxVoxel);
+                r.setPixel(i, j, color);
 
                 if (i % 100 == 0 && j == i) {
-                    System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);
+                    // System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);
                 }
             }
         }

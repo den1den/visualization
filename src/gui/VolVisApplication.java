@@ -4,12 +4,15 @@
  */
 package gui;
 
+import util.Settings;
 import com.jogamp.opengl.awt.GLJPanel;
 import java.awt.BorderLayout;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
+import static util.Settings.set1_data;
 import volume.Volume;
+import volvis.TransferFunction;
 import volvis.raycaster.RaycastRenderer;
 import volvis.Visualization;
 
@@ -29,24 +32,25 @@ public class VolVisApplication extends javax.swing.JFrame {
     public VolVisApplication() {
         initComponents();
         this.setTitle("2IMV20 Volume Visualization");
-        
-        //GLCanvas glPanel = new GLCanvas();
+
+        // GLCanvas glPanel = new GLCanvas();
         GLJPanel glPanel = new GLJPanel();
         renderPanel.setLayout(new BorderLayout());
         renderPanel.add(glPanel, BorderLayout.CENTER);
+        
         // Create a new visualization for the OpenGL panel
         visualization = new Visualization(glPanel);
         glPanel.addGLEventListener(visualization);
-    
-        raycastRenderer = new RaycastRenderer();
+
+        RaycastRendererPanel options = new RaycastRendererPanel();
+        raycastRenderer = new RaycastRenderer(options);
+        options.setRenderer(raycastRenderer);
+        tabbedPanel.addTab("Raycaster", options);
+        
         visualization.addRenderer(raycastRenderer);
-        raycastRenderer.addTFChangeListener(visualization);
+        raycastRenderer.addTFChangeListener(visualization); //TODO whats this for?
         
-        
-        
-        tabbedPanel.addTab("Raycaster", raycastRenderer.getPanel());
-        
-        loadFile(new File("/home/dennis/repos/Visualization/set1_data/orange.fld"));
+        loadFile(Settings.defaultFile);
     }
 
     /**
@@ -138,7 +142,7 @@ public class VolVisApplication extends javax.swing.JFrame {
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
         // TODO add your handling code here:
-        JFileChooser fc = new JFileChooser("/home/dennis/repos/Visualization/set1_data");
+        JFileChooser fc = new JFileChooser(set1_data);
         fc.setFileFilter(new FileFilter() {
 
             @Override
@@ -176,11 +180,13 @@ public class VolVisApplication extends javax.swing.JFrame {
         tabbedPanel.remove(raycastRenderer.getTFPanel());
         tabbedPanel.remove(raycastRenderer.getTF2DPanel());
         raycastRenderer.setVolume(volume);
-        raycastRenderer.tFunc.addTFChangeListener(raycastRenderer.tFunc.new TFPrinter(file.getName()));
-        raycastRenderer.tFunc.addDefaultControlPoints(file.getName());
+        TransferFunction tf = raycastRenderer.getTFunction();
+        tf.addTFChangeListener(tf.new TFPrinter(file.getName()));
+        tf.addDefaultControlPoints(file.getName());
         tabbedPanel.addTab("Transfer function", raycastRenderer.getTFPanel());
         tabbedPanel.addTab("2D transfer function", raycastRenderer.getTF2DPanel());
         visualization.update();
+        raycastRenderer.changed();
     }
     
     

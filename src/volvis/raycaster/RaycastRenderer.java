@@ -10,8 +10,10 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import gui.RaycastRendererPanel;
+import gui.RaycastRendererPanel.ValueFunction;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.GradientVolume;
@@ -27,32 +29,21 @@ import volvis.TransferFunction;
 public class RaycastRenderer extends Renderer {
 
     protected Volume volume = null;
+    protected TransferFunction tFunc = null;
     protected GradientVolume gradients = null;
-    RaycastRendererPanel panel;
-    public TransferFunction tFunc;
-    TransferFunctionEditor tfEditor;
-    TransferFunction2DEditor tfEditor2D;
+    protected TransferFunctionEditor tfEditor = null;
+    protected TransferFunction2DEditor tfEditor2D = null;
+    protected final RaycastRendererPanel options;
+    protected BufferedImage image;
+    protected double[] viewMatrix = new double[4 * 4];
+    
+    ValueFunction cachedValueFunction;
+    int minSteps;
+    int targetSteps;
+    RendererClass rendererClass = null;
 
-    public ValueFunction VAL_FUNC;
-    public int targetSteps = 100;
-
-    int getMinSteps() {
-        int s = Math.min(targetSteps, (int) (10.0 / panel.getSpeed() * targetSteps));
-        System.out.println("s = " + s);
-        return s;
-    }
-
-    public enum ValueFunction {
-        TRI_LINEAR,
-        ROUND_DOWN,
-        NEAREST
-    }
-
-    public RaycastRenderer() {
-        panel = new RaycastRendererPanel(this);
-        VAL_FUNC = ValueFunction.ROUND_DOWN;
-        last = this;
-        rendererClass = new CenterSlicer();
+    public RaycastRenderer(RaycastRendererPanel options) {
+        this.options = options;
     }
 
     /**
@@ -89,10 +80,6 @@ public class RaycastRenderer extends Renderer {
         tfEditor2D.addTFChangeListener(this);
 
         System.out.println("Finished initialization of " + toString());
-    }
-
-    public RaycastRendererPanel getPanel() {
-        return panel;
     }
 
     public TransferFunction2DEditor getTF2DPanel() {
@@ -188,7 +175,7 @@ public class RaycastRenderer extends Renderer {
 
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);
-        panel.setSpeed(runningTime);
+        options.setSpeed(runningTime);
 
         Texture texture = AWTTextureIO.newTexture(gl.getGLProfile(), image, false);
 
@@ -226,8 +213,6 @@ public class RaycastRenderer extends Renderer {
 
     }
 
-    protected BufferedImage image;
-    protected double[] viewMatrix = new double[4 * 4];
 
     /**
      * Sets the RGB values in this.image on update
@@ -241,6 +226,9 @@ public class RaycastRenderer extends Renderer {
             for (int i = 0; i < image.getWidth(); i++) {
                 image.setRGB(i, j, 0);
             }
+        }
+        if(rendererClass == null){
+            return;
         }
 
         /**
@@ -256,64 +244,85 @@ public class RaycastRenderer extends Renderer {
          */
         double[] vVec = VectorMath.newVector(viewMatrix[1], viewMatrix[5], viewMatrix[9]);
 
+        cachedValueFunction = options.getValueFunction();
+        minSteps = options.getMinSteps();
+        targetSteps = options.getTargetSteps();
         rendererClass.render(viewVec, uVec, vVec);
     }
+    
 
     public float getVoxel(double x, double y, double z) throws AssertionError {
-        float val;
-        switch (VAL_FUNC) {
+        switch (cachedValueFunction) {
             case TRI_LINEAR:
-                val = volume.getTriVoxel(x, y, z);
-                break;
+                return volume.getTriVoxel(x, y, z);
             case ROUND_DOWN:
-                val = volume.getFloorVoxel(x, y, z);
-                break;
+                return volume.getFloorVoxel(x, y, z);
             case NEAREST:
-                val = volume.getNNVoxel((float) x, (float) y, (float) z);
-                break;
+                return volume.getNNVoxel((float) x, (float) y, (float) z);
             default:
-                throw new AssertionError(VAL_FUNC.name());
+                throw new AssertionError(cachedValueFunction.name());
         }
-        return val;
     }
 
-    void setPixel(int i, int j, float val) {
-        setPixel(tFunc.getColor(Math.round(val)), i, j);
+    TFColor getColor(double x, double y, double z) {
+        float voxel = getVoxel(x, y, z);
+        return tFunc.getColor((int) voxel);
     }
 
-    void setPixel(TFColor color, int i, int j) {
-        int c_alpha = color.a <= 1.0 ? (int) Math.floor(color.a * 255) : 255;
-        int c_red = color.r <= 1.0 ? (int) Math.floor(color.r * 255) : 255;
-        int c_green = color.g <= 1.0 ? (int) Math.floor(color.g * 255) : 255;
-        int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
-        int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-        image.setRGB(i, j, pixelColor);
+    void setPixel(int i, int j, double a, double r, double g, double b) {
+        int p = getPixel(a, r, g, b);
+        image.setRGB(i, j, p);
     }
 
-    RendererClass rendererClass;
+    void setPixel(int i, int j, TFColor color) {
+        int p = getPixel(color.a, color.r, color.g, color.b);
+        image.setRGB(i, j, p);
+    }
+
+    TransferFunction getTF() {
+        return tFunc;
+    }
+
+    static int getPixel(TFColor color) {
+        return getPixel(color.a, color.r, color.g, color.b);
+    }
+
+    static int getPixel(double a, double r, double g, double b) {
+        int c_alpha = a <= 1.0 ? (int) Math.floor(a * 255) : 255;
+        int c_red = r <= 1.0 ? (int) Math.floor(r * 255) : 255;
+        int c_green = g <= 1.0 ? (int) Math.floor(g * 255) : 255;
+        int c_blue = b <= 1.0 ? (int) Math.floor(b * 255) : 255;
+        return (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+    }
 
     public void setRendererClass(RendererClass rendererClass) {
         this.rendererClass = rendererClass;
         changed();
     }
-    
-    private static RaycastRenderer last = null;
 
-    static public abstract class RendererClass {
+    public TransferFunction getTFunction() {
+        return tFunc;
+    }
 
-        RaycastRenderer data;
+    BufferedImage getImage() {
+        return image;
+    }
 
-        public RendererClass() {
-            this.data = getLast();
-        }
-
-        protected abstract void render(double[] viewVec, double[] uVec, double[] vVec);
+    Volume getVolume() {
+        return volume;
     }
 
     /**
-     * @return the last
+     * Inner class but then for seperate files
      */
-    public static RaycastRenderer getLast() {
-        return last;
+    static public abstract class RendererClass {
+
+        final protected RaycastRenderer r;
+
+        public RendererClass(RaycastRenderer r) {
+            this.r = r;
+        }
+
+        protected abstract void render(double[] viewVec, double[] uVec, double[] vVec);
     }
 }

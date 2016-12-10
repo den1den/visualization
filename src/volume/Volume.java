@@ -6,6 +6,8 @@ package volume;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import util.VectorMath;
 
 /**
@@ -13,15 +15,11 @@ import util.VectorMath;
  * @author michel
  */
 public class Volume {
-
-    public Volume(int xd, int yd, int zd) {
-        data = new short[xd * yd * zd];
-        dimX = xd;
-        dimY = yd;
-        dimZ = zd;
-    }
+    
+    private Path file;
 
     public Volume(File file) {
+        this.file = file.toPath();
         try {
             VolumeIO reader = new VolumeIO(file);
             dimX = reader.getXDim();
@@ -323,5 +321,11 @@ public class Volume {
             logHistogram[i] = Math.log(histogram[i]);
         }
         return logHistogram;
+    }
+    
+    public Path getPreviewImagePath(Class rendererClass){
+        Path cache = this.file.resolveSibling(file.getFileName().toString() + ".cache");
+        System.out.println("cache = "+cache);
+        return cache;
     }
 }

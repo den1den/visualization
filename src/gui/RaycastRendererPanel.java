@@ -4,11 +4,8 @@
  */
 package gui;
 
+import javax.swing.DefaultComboBoxModel;
 import volvis.raycaster.TF2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
 import javax.swing.JOptionPane;
 import volvis.raycaster.CenterSlicer;
 import volvis.raycaster.Compositing;
@@ -21,23 +18,41 @@ import volvis.raycaster.RaycastRenderer;
  */
 public class RaycastRendererPanel extends javax.swing.JPanel {
 
-    RaycastRenderer renderer;
-    TransferFunctionEditor tfEditor = null;
-    TransferFunction2DEditor tfEditor2D = null;
+    private int targetSteps = 100;
+
+    public int getMinSteps() {
+        int ts = getTargetSteps();
+        double speed = getSpeed();
+        int s = Math.min(ts, (int) (10.0 / speed * ts));
+        return s;
+    }
+    
+    public enum ValueFunction {
+        TRI_LINEAR,
+        ROUND_DOWN,
+        NEAREST;
+        
+        static DefaultComboBoxModel<ValueFunction> getComboBox(){
+            return new DefaultComboBoxModel<>(ValueFunction.values());
+        }
+    }
+    
+    public ValueFunction getValueFunction(){
+        return (ValueFunction) jComboBox1.getSelectedItem();
+    }
+    
+    private RaycastRenderer renderer = null;
     
     /**
      * Creates new form RaycastRendererPanel
      */
-    public RaycastRendererPanel(RaycastRenderer renderer) {
+    public RaycastRendererPanel() {
         initComponents();
-        this.renderer = renderer;
-        this.jTextFieldSteps.setText(String.valueOf(renderer.targetSteps));
-        
     }
 
     public void setSpeedLabel(String text) {
         renderingSpeedLabel.setText(text);
-            }
+    }
     
     
     /**
@@ -105,7 +120,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "floor", "average", "trilinear" }));
+        jComboBox1.setModel(ValueFunction.getComboBox());
         jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBox1ActionPerformed(evt);
@@ -173,19 +188,19 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
-        renderer.setRendererClass(new Mip());
+        renderer.setRendererClass(new Mip(renderer));
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        renderer.setRendererClass(new CenterSlicer());
+        renderer.setRendererClass(new CenterSlicer(renderer));
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        renderer.setRendererClass(new Compositing());
+        renderer.setRendererClass(new Compositing(renderer));
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        renderer.setRendererClass(new TF2D());
+        renderer.setRendererClass(new TF2D(renderer));
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
@@ -193,28 +208,15 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
-        switch (jComboBox1.getSelectedIndex()) {
-            case 0:
-                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.ROUND_DOWN;
-                break;
-            case 1:
-                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.NEAREST;
-                break;
-            case 2:
-                renderer.VAL_FUNC = RaycastRenderer.ValueFunction.TRI_LINEAR;
-                break;
-            default:
-                break;
-        }
         renderer.changed();
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void jTextFieldStepsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldStepsActionPerformed
         try{
-            renderer.targetSteps = Integer.valueOf(jTextFieldSteps.getText());
+            setTargetSteps((int) Integer.valueOf(jTextFieldSteps.getText()));
         } catch (NumberFormatException e){
             JOptionPane.showMessageDialog(this, "Only numbers allowed");
-            jTextFieldSteps.setText(String.valueOf(renderer.targetSteps));
+            jTextFieldSteps.setText(String.valueOf(getTargetSteps()));
         }
         renderer.changed();
     }//GEN-LAST:event_jTextFieldStepsActionPerformed
@@ -222,7 +224,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
-    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<ValueFunction> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField jTextFieldSteps;
@@ -239,5 +241,27 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         setSpeedLabel(String.valueOf(this.runningTime));
     }public double getSpeed(){
         return runningTime;
+    }
+
+    /**
+     * @return the targetSteps
+     */
+    public int getTargetSteps() {
+        return targetSteps;
+    }
+
+    /**
+     * @param targetSteps the targetSteps to set
+     */
+    public void setTargetSteps(int targetSteps) {
+        this.targetSteps = targetSteps;
+    }
+
+    /**
+     * @param renderer the renderer to set
+     */
+    public void setRenderer(RaycastRenderer renderer) {
+        this.renderer = renderer;
+        this.renderer.setRendererClass(new Compositing(renderer));
     }
 }
