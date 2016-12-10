@@ -10,6 +10,7 @@ import util.VectorMath;
 import volume.Volume;
 import volvis.TFColor;
 import volvis.TransferFunction;
+import static volvis.raycaster.RaycastRenderer.setPixel;
 
 
 public class Mip extends RaycastRenderer.RendererClass {
@@ -23,8 +24,8 @@ public class Mip extends RaycastRenderer.RendererClass {
         // image
         BufferedImage image = r.getImage();
         final int imageCenter = image.getWidth() / 2;
-        final int imageHeight = r.image.getWidth();
-        final int imageWidth = r.image.getWidth();
+        final int imageHeight = image.getWidth();
+        final int imageWidth = image.getWidth();
 
         // volume
         Volume volume = r.getVolume();
@@ -72,7 +73,7 @@ public class Mip extends RaycastRenderer.RendererClass {
                     VectorMath.setAddVector(q, dq);
                 }
                 TFColor color = tf.getColor((int) maxVoxel);
-                r.setPixel(i, j, color);
+                setPixel(image, i, j, color);
 
                 if (i % 100 == 0 && j == i) {
                     // System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);

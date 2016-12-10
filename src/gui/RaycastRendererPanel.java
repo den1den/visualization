@@ -27,6 +27,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         static DefaultComboBoxModel<ValueFunction> getComboBox() {
             return new DefaultComboBoxModel<>(ValueFunction.values());
         }
+
+        public static ValueFunction fastest() {
+            return ROUND_DOWN;
+        }
     }
 
     public ValueFunction getValueFunction() {
@@ -244,41 +248,51 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
      */
     public void setRenderer(RaycastRenderer renderer) {
         this.renderer = renderer;
-        this.renderer.setRendererClass(new Compositing(renderer));
+        this.renderer.setRendererClass(renderer.getDefault());
     }
     
     private class StepEstimator {
-        double falloff;
         long[] times;
         int[] steps;
-        int offset = 0;
+        int offset = 0, MIN, MAX;
         final double msPerFrame;
 
         public StepEstimator() {
             int targetFPS = 15;
-            final int history = 5;
-            this.falloff = 0.7;
+            final int history = (int) (targetFPS * 1.0); // 1 second history
+            this.MIN = 10;
+            this.MAX = 2000;
             this.times = new long[history];
             this.steps = new int[history];
             msPerFrame = 1000.0 / targetFPS;
         }
         
         int getSteps(){
-            double weight = 1;
             double avgTimePerStep = 0;
-            double weightSum = 0;
             for (int i = 0; i < times.length; i++) {
                 int index = (offset - 1 - i + times.length) % times.length;
                 if(times[index] > 0){
                     double val = ((double)times[index]) / steps[index];
-                    avgTimePerStep += weight * val;
-                    weightSum += weight;
+                    if(val > avgTimePerStep){
+                        avgTimePerStep = val;
+                    }
                 }
-                weight *= this.falloff;
             }
-            avgTimePerStep = (avgTimePerStep / weightSum); // s / step
+            if(avgTimePerStep == 0){
+                return MIN;
+            }
             int target = (int) (msPerFrame / avgTimePerStep);
-            return target;
+            if(target <= MIN){
+                return MIN;
+            }
+            if(target >= MAX){
+                return MAX;
+            }
+            if(target >= maxSteps){
+                return maxSteps;
+            } else {
+                return target;
+            }
         }
         
         void addTime(long time, int steps){
@@ -299,18 +313,18 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }
     private StepEstimator stepEstimator = new StepEstimator();
     
-    int maxSteps = 100;
+    int maxSteps = 300;
 
     public int getMaxSteps() {
         return maxSteps;
     }
 
     public int getEstSteps() {
-        return Math.max(5, (int)stepEstimator.getSteps());
+        return stepEstimator.getSteps();
     }
 
     public void setLastImageCalcTime(double lastCalcImageTime) {
-        renderingSpeedLabel.setText(String.valueOf(lastCalcImageTime));
+        renderingSpeedLabel.setText(String.format("%.1f", lastCalcImageTime));
     }
 
     public void setLastVisualizeTime(long l, int steps) {

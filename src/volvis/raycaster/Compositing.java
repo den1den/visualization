@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.Volume;
 import volvis.TFColor;
+import static volvis.raycaster.RaycastRenderer.setPixel;
 
 
 public class Compositing extends RaycastRenderer.RendererClass {
@@ -22,8 +23,8 @@ public class Compositing extends RaycastRenderer.RendererClass {
         // image
         BufferedImage image = r.getImage();
         final int imageCenter = image.getWidth() / 2;
-        final int imageHeight = r.image.getWidth();
-        final int imageWidth = r.image.getWidth();
+        final int imageHeight = image.getWidth();
+        final int imageWidth = image.getWidth();
 
         // volume
         Volume volume = r.getVolume();
@@ -70,7 +71,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
                     VectorMath.setAddVector(q, dq);
                 }
                 
-                r.setPixel(i, j, 1, red, g, b);
+                setPixel(image, i, j, 1, red, g, b);
 
                 if (i % 100 == 0 && j == i) {
                     // System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);

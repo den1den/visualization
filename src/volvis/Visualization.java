@@ -16,6 +16,12 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import sun.misc.Lock;
 import util.TFChangeListener;
 import util.TrackballInteractor;
 
@@ -151,8 +157,12 @@ public class Visualization implements GLEventListener, TFChangeListener {
         }
 
     }
-
+    
+    static Timer timer;
+    
     class MouseWheelHandler implements MouseWheelListener {
+        
+        long lastupdate = 0;
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
@@ -164,9 +174,40 @@ public class Visualization implements GLEventListener, TFChangeListener {
             } else { // down
                 fov++;
             }
+            for (int i = 0; i < renderers.size(); i++) {
+                Renderer r = renderers.get(i);
+                r.setInteractiveMode(true);
+            }
             update();
+            synchronized(MouseWheelHandler.class){
+                long u = System.currentTimeMillis();
+                if(u > lastupdate){
+                    if(timer != null){
+                        timer.cancel();
+                    }
+                    lastupdate = u;
+                    timer = new Timer();
+                    timer.schedule(new FullRenderTask(), 1000);
+                }
+            }
         }
+        
+        private class FullRenderTask extends TimerTask {
 
+            public FullRenderTask() {
+            }
+
+            @Override
+            public void run() {
+                for (int i = 0; i < renderers.size(); i++) {
+                    Renderer r = renderers.get(i);
+                    r.setInteractiveMode(false);
+                }
+                update();
+            }
+        }
+        
+        
     }
 
 }

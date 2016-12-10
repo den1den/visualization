@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.Volume;
 import volvis.TFColor;
+import static volvis.raycaster.RaycastRenderer.setPixel;
 
 /**
  *
@@ -24,9 +25,10 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
     protected void render(double[] viewVec, double[] uVec, double[] vVec) {
         // image
         BufferedImage image = r.getImage();
-        final int imageCenter = image.getWidth() / 2;
-        final int imageHeight = r.image.getWidth();
-        final int imageWidth = r.image.getWidth();
+        final int imageHeight = image.getHeight();
+        final int imageWidth = image.getHeight();
+        final int imageCenter = imageWidth / 2;
+        
 
         // volume
         Volume volume = r.getVolume();
@@ -38,8 +40,8 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
         // sample on a plane through the origin of the volume data
         TFColor color;
 
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j < imageHeight; j++) {
+            for (int i = 0; i < imageWidth; i++) {
                 double x = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
                 double y = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
@@ -48,7 +50,7 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
                         + volumeCenter[2];
                 
                 color = r.getColor(x, y, z);
-                r.setPixel(i, j, color);
+                setPixel(image, i, j, color);
             }
         }
     }

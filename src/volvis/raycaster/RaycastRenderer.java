@@ -13,7 +13,6 @@ import gui.RaycastRendererPanel;
 import gui.RaycastRendererPanel.ValueFunction;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.GradientVolume;
@@ -28,18 +27,24 @@ import volvis.TransferFunction;
  */
 public class RaycastRenderer extends Renderer {
 
+    public RendererClass getDefault() {
+        return new CenterSlicer(this);
+    }
+
     protected Volume volume = null;
     protected TransferFunction tFunc = null;
     protected GradientVolume gradients = null;
     protected TransferFunctionEditor tfEditor = null;
     protected TransferFunction2DEditor tfEditor2D = null;
     protected final RaycastRendererPanel options;
-    protected BufferedImage image;
+    private BufferedImage full_image;
+    private BufferedImage fast_image;
     protected double[] viewMatrix = new double[4 * 4];
     
-    ValueFunction cachedValueFunction;
+    ValueFunction valueFunction;
     int steps;
     RendererClass rendererClass = null;
+    private final float FAST_IMAGE_SCALE = 1.5f;
 
     public RaycastRenderer(RaycastRendererPanel options) {
         this.options = options;
@@ -64,7 +69,12 @@ public class RaycastRenderer extends Renderer {
         if (imageSize % 2 != 0) {
             imageSize = imageSize + 1;
         }
-        image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
+        full_image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
+        int fastImageSize = (int) (imageSize / FAST_IMAGE_SCALE);
+        if (fastImageSize % 2 != 0) {
+            fastImageSize = fastImageSize + 1;
+        }
+        fast_image = new BufferedImage(fastImageSize, fastImageSize, BufferedImage.TYPE_INT_ARGB);
 
         // create a standard TF of the dataset.
         // This maps an intensity value to some color value
@@ -178,6 +188,7 @@ public class RaycastRenderer extends Renderer {
         double lastCalcImageTime = (endTime - startTime);
         options.setLastImageCalcTime(lastCalcImageTime);
 
+        BufferedImage image = getImage();
         Texture texture = AWTTextureIO.newTexture(gl.getGLProfile(), image, false);
 
         gl.glPushAttrib(GL2.GL_LIGHTING_BIT);
@@ -189,6 +200,9 @@ public class RaycastRenderer extends Renderer {
         texture.enable(gl);
         texture.bind(gl);
         double halfWidth = image.getWidth() / 2.0;
+        if(isInteractiveMode()){
+            halfWidth *= FAST_IMAGE_SCALE;
+        }
         gl.glPushMatrix();
         gl.glLoadIdentity();
         gl.glBegin(GL2.GL_QUADS);
@@ -222,8 +236,16 @@ public class RaycastRenderer extends Renderer {
      * @param viewMatrix the current view orientation
      */
     private void calcImage() {
+        if (isInteractiveMode()) {
+            steps = options.getEstSteps();
+            valueFunction = ValueFunction.fastest();
+        } else {
+            steps = options.getMaxSteps();
+            valueFunction = options.getValueFunction();
+        }
 
         // clear image
+        BufferedImage image = getImage();
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 image.setRGB(i, j, 0);
@@ -242,20 +264,19 @@ public class RaycastRenderer extends Renderer {
          * Vector in the upwards direction of the screen
          */
         double[] vVec = VectorMath.newVector(viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-
-        cachedValueFunction = options.getValueFunction();
+        
         if(isInteractiveMode()){
-            steps = options.getEstSteps();
-        } else {
-            steps = options.getMaxSteps();
+            VectorMath.setScale(uVec, FAST_IMAGE_SCALE);
+            VectorMath.setScale(vVec, FAST_IMAGE_SCALE);
         }
+        
         options.setActualStepsToTake(steps);
         rendererClass.render(viewVec, uVec, vVec);
     }
     
 
     public float getVoxel(double x, double y, double z) throws AssertionError {
-        switch (cachedValueFunction) {
+        switch (valueFunction) {
             case TRI_LINEAR:
                 return volume.getTriVoxel(x, y, z);
             case ROUND_DOWN:
@@ -263,7 +284,7 @@ public class RaycastRenderer extends Renderer {
             case NEAREST:
                 return volume.getNNVoxel((float) x, (float) y, (float) z);
             default:
-                throw new AssertionError(cachedValueFunction.name());
+                throw new AssertionError(valueFunction.name());
         }
     }
 
@@ -272,12 +293,12 @@ public class RaycastRenderer extends Renderer {
         return tFunc.getColor((int) voxel);
     }
 
-    void setPixel(int i, int j, double a, double r, double g, double b) {
+    static void setPixel(BufferedImage image, int i, int j, double a, double r, double g, double b) {
         int p = getPixel(a, r, g, b);
         image.setRGB(i, j, p);
     }
 
-    void setPixel(int i, int j, TFColor color) {
+    static void setPixel(BufferedImage image, int i, int j, TFColor color) {
         int p = getPixel(color.a, color.r, color.g, color.b);
         image.setRGB(i, j, p);
     }
@@ -309,11 +330,23 @@ public class RaycastRenderer extends Renderer {
     }
 
     BufferedImage getImage() {
-        return image;
+        if(isInteractiveMode()){
+            return fast_image;
+        } else {
+            return full_image;
+        }
     }
 
     Volume getVolume() {
         return volume;
+    }
+
+    int getApparentHeight() {
+        return full_image.getHeight();
+    }
+
+    int getApparentWidth() {
+        return full_image.getWidth();
     }
 
     /**
