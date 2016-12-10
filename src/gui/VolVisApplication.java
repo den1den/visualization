@@ -187,6 +187,8 @@ public class VolVisApplication extends javax.swing.JFrame {
         tabbedPanel.addTab("2D transfer function", raycastRenderer.getTF2DPanel());
         visualization.update();
         raycastRenderer.changed();
+        
+        
     }
     
     

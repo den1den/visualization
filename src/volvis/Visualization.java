@@ -65,7 +65,7 @@ public class Visualization implements GLEventListener, TFChangeListener {
     public void init(GLAutoDrawable drawable) {
 
     }
-
+    
     @Override
     public void display(GLAutoDrawable drawable) {
         // get the OpenGL rendering context

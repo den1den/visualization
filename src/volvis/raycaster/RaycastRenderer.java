@@ -38,8 +38,7 @@ public class RaycastRenderer extends Renderer {
     protected double[] viewMatrix = new double[4 * 4];
     
     ValueFunction cachedValueFunction;
-    int minSteps;
-    int targetSteps;
+    int steps;
     RendererClass rendererClass = null;
 
     public RaycastRenderer(RaycastRendererPanel options) {
@@ -79,6 +78,8 @@ public class RaycastRenderer extends Renderer {
         tfEditor2D = new TransferFunction2DEditor(volume, gradients);
         tfEditor2D.addTFChangeListener(this);
 
+        options.resetTimings();
+        
         System.out.println("Finished initialization of " + toString());
     }
 
@@ -174,8 +175,8 @@ public class RaycastRenderer extends Renderer {
         calcImage();
 
         long endTime = System.currentTimeMillis();
-        double runningTime = (endTime - startTime);
-        options.setSpeed(runningTime);
+        double lastCalcImageTime = (endTime - startTime);
+        options.setLastImageCalcTime(lastCalcImageTime);
 
         Texture texture = AWTTextureIO.newTexture(gl.getGLProfile(), image, false);
 
@@ -211,6 +212,7 @@ public class RaycastRenderer extends Renderer {
             System.out.println("some OpenGL error: " + gl.glGetError());
         }
 
+        options.setLastVisualizeTime(System.currentTimeMillis() - startTime, steps);
     }
 
 
@@ -227,9 +229,6 @@ public class RaycastRenderer extends Renderer {
                 image.setRGB(i, j, 0);
             }
         }
-        if(rendererClass == null){
-            return;
-        }
 
         /**
          * Vector in the direction of viewing
@@ -245,8 +244,12 @@ public class RaycastRenderer extends Renderer {
         double[] vVec = VectorMath.newVector(viewMatrix[1], viewMatrix[5], viewMatrix[9]);
 
         cachedValueFunction = options.getValueFunction();
-        minSteps = options.getMinSteps();
-        targetSteps = options.getTargetSteps();
+        if(isInteractiveMode()){
+            steps = options.getEstSteps();
+        } else {
+            steps = options.getMaxSteps();
+        }
+        options.setActualStepsToTake(steps);
         rendererClass.render(viewVec, uVec, vVec);
     }
     
@@ -297,6 +300,7 @@ public class RaycastRenderer extends Renderer {
 
     public void setRendererClass(RendererClass rendererClass) {
         this.rendererClass = rendererClass;
+        options.resetTimings();
         changed();
     }
 

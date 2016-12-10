@@ -4,6 +4,7 @@
  */
 package gui;
 
+import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
 import volvis.raycaster.TF2D;
 import javax.swing.JOptionPane;
@@ -18,31 +19,22 @@ import volvis.raycaster.RaycastRenderer;
  */
 public class RaycastRendererPanel extends javax.swing.JPanel {
 
-    private int targetSteps = 100;
-
-    public int getMinSteps() {
-        int ts = getTargetSteps();
-        double speed = getSpeed();
-        int s = Math.min(ts, (int) (10.0 / speed * ts));
-        return s;
-    }
-    
     public enum ValueFunction {
         TRI_LINEAR,
         ROUND_DOWN,
         NEAREST;
-        
-        static DefaultComboBoxModel<ValueFunction> getComboBox(){
+
+        static DefaultComboBoxModel<ValueFunction> getComboBox() {
             return new DefaultComboBoxModel<>(ValueFunction.values());
         }
     }
-    
-    public ValueFunction getValueFunction(){
+
+    public ValueFunction getValueFunction() {
         return (ValueFunction) jComboBox1.getSelectedItem();
     }
-    
+
     private RaycastRenderer renderer = null;
-    
+
     /**
      * Creates new form RaycastRendererPanel
      */
@@ -50,11 +42,6 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         initComponents();
     }
 
-    public void setSpeedLabel(String text) {
-        renderingSpeedLabel.setText(text);
-    }
-    
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -75,6 +62,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         jComboBox1 = new javax.swing.JComboBox<>();
         jTextFieldSteps = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        actualStepsLabel = new javax.swing.JLabel();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -127,13 +116,18 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
+        jTextFieldSteps.setText(String.valueOf(maxSteps));
         jTextFieldSteps.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldStepsActionPerformed(evt);
             }
         });
 
-        jLabel2.setText("minSteps:");
+        jLabel2.setText("targetSteps:");
+
+        jLabel3.setText("actualSteps:");
+
+        actualStepsLabel.setText("-");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -146,20 +140,25 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(renderingSpeedLabel))
-                    .addComponent(compositingButton)
                     .addComponent(tf2dButton)
                     .addComponent(shadingCheckbox)
+                    .addComponent(mipButton)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(slicerButton)
-                        .addGap(150, 150, 150)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(slicerButton)
+                            .addComponent(compositingButton))
+                        .addGap(119, 119, 119)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(actualStepsLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldSteps, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(mipButton))
-                .addContainerGap(159, Short.MAX_VALUE))
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(147, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -178,7 +177,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                     .addComponent(jTextFieldSteps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(compositingButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(compositingButton)
+                    .addComponent(jLabel3)
+                    .addComponent(actualStepsLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tf2dButton)
                 .addGap(18, 18, 18)
@@ -212,21 +214,23 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void jTextFieldStepsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldStepsActionPerformed
-        try{
-            setTargetSteps((int) Integer.valueOf(jTextFieldSteps.getText()));
-        } catch (NumberFormatException e){
+        try {
+            maxSteps = (int) Integer.valueOf(jTextFieldSteps.getText());
+            renderer.changed();
+        } catch (NumberFormatException e) {
+            jTextFieldSteps.setText(String.valueOf(maxSteps));
             JOptionPane.showMessageDialog(this, "Only numbers allowed");
-            jTextFieldSteps.setText(String.valueOf(getTargetSteps()));
         }
-        renderer.changed();
     }//GEN-LAST:event_jTextFieldStepsActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel actualStepsLabel;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
     private javax.swing.JComboBox<ValueFunction> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField jTextFieldSteps;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;
@@ -235,33 +239,89 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     private javax.swing.JRadioButton tf2dButton;
     // End of variables declaration//GEN-END:variables
 
-    public double runningTime = 0;
-    public void setSpeed(double runningTime) {
-        this.runningTime = runningTime;
-        setSpeedLabel(String.valueOf(this.runningTime));
-    }public double getSpeed(){
-        return runningTime;
-    }
-
-    /**
-     * @return the targetSteps
-     */
-    public int getTargetSteps() {
-        return targetSteps;
-    }
-
-    /**
-     * @param targetSteps the targetSteps to set
-     */
-    public void setTargetSteps(int targetSteps) {
-        this.targetSteps = targetSteps;
-    }
-
     /**
      * @param renderer the renderer to set
      */
     public void setRenderer(RaycastRenderer renderer) {
         this.renderer = renderer;
         this.renderer.setRendererClass(new Compositing(renderer));
+    }
+    
+    private class StepEstimator {
+        double falloff;
+        long[] times;
+        int[] steps;
+        int offset = 0;
+        final double msPerFrame;
+
+        public StepEstimator() {
+            int targetFPS = 15;
+            final int history = 5;
+            this.falloff = 0.7;
+            this.times = new long[history];
+            this.steps = new int[history];
+            msPerFrame = 1000.0 / targetFPS;
+        }
+        
+        int getSteps(){
+            double weight = 1;
+            double avgTimePerStep = 0;
+            double weightSum = 0;
+            for (int i = 0; i < times.length; i++) {
+                int index = (offset - 1 - i + times.length) % times.length;
+                if(times[index] > 0){
+                    double val = ((double)times[index]) / steps[index];
+                    avgTimePerStep += weight * val;
+                    weightSum += weight;
+                }
+                weight *= this.falloff;
+            }
+            avgTimePerStep = (avgTimePerStep / weightSum); // s / step
+            int target = (int) (msPerFrame / avgTimePerStep);
+            return target;
+        }
+        
+        void addTime(long time, int steps){
+            times[offset] = time;
+            this.steps[offset] = steps;
+            offset = (offset + 1) % times.length;
+        }
+
+        @Override
+        public String toString() {
+            return getSteps() + Arrays.toString(times) + Arrays.toString(steps);
+        }
+        
+        void reset(){
+            Arrays.fill(steps, 0);
+            Arrays.fill(times, 0);
+        }
+    }
+    private StepEstimator stepEstimator = new StepEstimator();
+    
+    int maxSteps = 100;
+
+    public int getMaxSteps() {
+        return maxSteps;
+    }
+
+    public int getEstSteps() {
+        return Math.max(5, (int)stepEstimator.getSteps());
+    }
+
+    public void setLastImageCalcTime(double lastCalcImageTime) {
+        renderingSpeedLabel.setText(String.valueOf(lastCalcImageTime));
+    }
+
+    public void setLastVisualizeTime(long l, int steps) {
+        stepEstimator.addTime(l, steps);
+    }
+
+    public void setActualStepsToTake(int steps) {
+        actualStepsLabel.setText(String.valueOf(steps));
+    }
+
+    public void resetTimings() {
+        stepEstimator.reset();
     }
 }

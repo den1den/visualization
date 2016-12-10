@@ -50,53 +50,59 @@ public class TransferFunction {
 
     public void addDefaultControlPoints(String filename) {
         if (true) {
-            addRainbowControllPoints();
-            return;
+//            addRainbowControllPoints();
+//            return;
         }
-        if (filename.equals("orange.fld")) {
-            addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(21, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(38, 0.25, 0.25, 0.25, 0.07);
-            addControlPoint(41, 1.0, 0.4, 0.0, 0.24);
-            addControlPoint(43, 0.4473684210526316, 0.2979473684210526, 0.0, 0.1);
-            addControlPoint(72, 0.4842105263157895, 0.32248421052631576, 0.0, 0.36);
-            addControlPoint(78, 1.0, 0.666, 0.0, 0.76);
-            addControlPoint(103, 0.0, 0.0, 0.0, 0.41);
-            addControlPoint(205, 0.0, 0.0, 0.0, 0.0);
-        } else if (filename.equals("bonsai.fld")) {
-            addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(29, 0.0, 1.0, 0.2, 0.08);
-            addControlPoint(34, 0.0, 1.0, 0.0, 0.89);
-            addControlPoint(61, 0.6, 0.2, 0.0, 0.06);
-            addControlPoint(74, 0.5329329329329329, 0.2, 0.0, 0.77);
-            addControlPoint(124, 0.47927927927927927, 0.2, 0.0, 0.97);
-            addControlPoint(143, 0.47047047047047047, 0.2, 0.0, 0.97);
-            addControlPoint(155, 0.4330779759351188, 0.2, 0.0, 0.37);
-            addControlPoint(192, 0.4, 0.2, 0.0, 0.0);
-            addControlPoint(193, 0.0, 0.2, 0.2, 0.99);
-            addControlPoint(253, 0.0, 0.0, 0.0, 1.0);
-        } else if (filename.equals("stent8.fld")) {
-            addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(2, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(29, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(49, 0.8, 0.0, 0.0, 0.31);
-            addControlPoint(56, 0.0, 0.0, 0.0, 0.0);
-            addControlPoint(64, 0.0, 0.0, 1.0, 0.02);
-            addControlPoint(82, 0.6042796197266785, 0.6042796197266785, 0.6042796197266785, 0.0);
-            addControlPoint(86, 0.6166161646725248, 0.6166161646725248, 0.6166161646725248, 0.22);
-            addControlPoint(169, 0.9328187441472342, 0.9328187441472342, 0.9328187441472342, 0.2);
-            addControlPoint(171, 0.9702637864534498, 0.9702637864534498, 0.9702637864534498, 1.0);
-            addControlPoint(255, 1.0, 1.0, 1.0, 1.0);
-        } else if (filename.equals("backpack8_small.fld")) {
-            addControlPoint(0, 0.5, 0.5, 0.5, 0.0);
-            addControlPoint(21, 0.6438976377952756, 0.6438976377952756, 0.6438976377952756, 0.04);
-            addControlPoint(68, 0.746843849269885, 0.746843849269885, 0.746843849269885, 0.09);
-            addControlPoint(71, 0.832267301344561, 0.832267301344561, 0.832267301344561, 0.03);
-            addControlPoint(149, 0.9297376505066912, 0.9297376505066912, 0.9297376505066912, 0.0);
-            addControlPoint(245, 0.9858124101984665, 0.9858124101984665, 0.9858124101984665, 0.27);
-            addControlPoint(254, 1.0, 1.0, 1.0, 1.0);
-        } else {
-            System.out.println("No default transfer function known for " + filename);
+        switch (filename) {
+            case "orange.fld":
+                addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(21, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(38, 0.25, 0.25, 0.25, 0.07);
+                addControlPoint(41, 1.0, 0.4, 0.0, 0.24);
+                addControlPoint(43, 0.4473684210526316, 0.2979473684210526, 0.0, 0.1);
+                addControlPoint(72, 0.4842105263157895, 0.32248421052631576, 0.0, 0.36);
+                addControlPoint(78, 1.0, 0.666, 0.0, 0.76);
+                addControlPoint(103, 0.0, 0.0, 0.0, 0.41);
+                addControlPoint(205, 0.0, 0.0, 0.0, 0.0);
+                break;
+            case "bonsai.fld":
+                addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(29, 0.0, 1.0, 0.2, 0.08);
+                addControlPoint(34, 0.0, 1.0, 0.0, 0.89);
+                addControlPoint(61, 0.6, 0.2, 0.0, 0.06);
+                addControlPoint(74, 0.5329329329329329, 0.2, 0.0, 0.77);
+                addControlPoint(124, 0.47927927927927927, 0.2, 0.0, 0.97);
+                addControlPoint(143, 0.47047047047047047, 0.2, 0.0, 0.97);
+                addControlPoint(155, 0.4330779759351188, 0.2, 0.0, 0.37);
+                addControlPoint(192, 0.4, 0.2, 0.0, 0.0);
+                addControlPoint(193, 0.0, 0.2, 0.2, 0.99);
+                addControlPoint(253, 0.0, 0.0, 0.0, 1.0);
+                break;
+            case "stent8.fld":
+                addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(2, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(29, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(49, 0.8, 0.0, 0.0, 0.31);
+                addControlPoint(56, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(64, 0.0, 0.0, 1.0, 0.02);
+                addControlPoint(82, 0.6042796197266785, 0.6042796197266785, 0.6042796197266785, 0.0);
+                addControlPoint(86, 0.6166161646725248, 0.6166161646725248, 0.6166161646725248, 0.22);
+                addControlPoint(169, 0.9328187441472342, 0.9328187441472342, 0.9328187441472342, 0.2);
+                addControlPoint(171, 0.9702637864534498, 0.9702637864534498, 0.9702637864534498, 1.0);
+                addControlPoint(255, 1.0, 1.0, 1.0, 1.0);
+                break;
+            case "backpack8_small.fld":
+                addControlPoint(0, 0.5, 0.5, 0.5, 0.0);
+                addControlPoint(21, 0.6438976377952756, 0.6438976377952756, 0.6438976377952756, 0.04);
+                addControlPoint(68, 0.746843849269885, 0.746843849269885, 0.746843849269885, 0.09);
+                addControlPoint(71, 0.832267301344561, 0.832267301344561, 0.832267301344561, 0.03);
+                addControlPoint(149, 0.9297376505066912, 0.9297376505066912, 0.9297376505066912, 0.0);
+                addControlPoint(245, 0.9858124101984665, 0.9858124101984665, 0.9858124101984665, 0.27);
+                addControlPoint(254, 1.0, 1.0, 1.0, 1.0);
+                break;
+            default:
+                System.out.println("No default transfer function known for " + filename);
+                break;
         }
     }
 

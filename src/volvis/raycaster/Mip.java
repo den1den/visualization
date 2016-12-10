@@ -33,20 +33,12 @@ public class Mip extends RaycastRenderer.RendererClass {
         // color
         final TransferFunction tf = r.getTF();
 
-        final int minSteps;
-        if (r.isInteractiveMode()) {
-            minSteps = r.minSteps;
-        } else {
-            minSteps = r.targetSteps;
-        }
-        final int maxSteps = (int) Math.ceil(volume.getMaxIntersectionLength() / volume.getMinIntersectionLength() * minSteps);
-
         // q = sample on a line through the origin of the volume data
         double[] q = new double[3];
         double[] ts = new double[2]; // intersection points with bounding box
 
         double[] dq = VectorMath.getCopy(viewVec);
-        double dv = (double) (volume.getMinIntersectionLength()) / (minSteps + 1);
+        double dv = (double) (volume.getMinIntersectionLength()) / (r.steps + 1);
         VectorMath.setScale(dq, dv);
 
         for (int j = 0; j < imageHeight; j++) {
