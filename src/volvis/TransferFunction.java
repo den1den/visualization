@@ -67,16 +67,21 @@ public class TransferFunction {
                 break;
             case "bonsai.fld":
                 addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-                addControlPoint(29, 0.0, 1.0, 0.2, 0.08);
-                addControlPoint(34, 0.0, 1.0, 0.0, 0.89);
-                addControlPoint(61, 0.6, 0.2, 0.0, 0.06);
-                addControlPoint(74, 0.5329329329329329, 0.2, 0.0, 0.77);
-                addControlPoint(124, 0.47927927927927927, 0.2, 0.0, 0.97);
-                addControlPoint(143, 0.47047047047047047, 0.2, 0.0, 0.97);
-                addControlPoint(155, 0.4330779759351188, 0.2, 0.0, 0.37);
-                addControlPoint(192, 0.4, 0.2, 0.0, 0.0);
-                addControlPoint(193, 0.0, 0.2, 0.2, 0.99);
-                addControlPoint(253, 0.0, 0.0, 0.0, 1.0);
+                addControlPoint(24, 0.0, 1.0, 0.2, 0.0);
+                addControlPoint(30, 0.0, 1.0, 0.4, 0.043);
+                addControlPoint(34, 0.075, 0.9, 0.0, 0.0444);
+                addControlPoint(36, 0.0, 1.0, 0.2, 0.0);
+                addControlPoint(38, 0.1819607843137255, 0.8384313725490196, 0.14666666666666667, 0.043);
+                addControlPoint(41, 0.4549019607843137, 0.596078431372549, 0.06666666666666667, 0.0458);
+                addControlPoint(45, 0.2788451404421975, 0.6282064794104034, 0.0, 0.0);
+                addControlPoint(45, 0.40588903668756515, 0.4141032397052017, 0.0, 0.4908);
+                addControlPoint(51, 0.5329329329329329, 0.2, 0.0, 0.157);
+                addControlPoint(135, 0.47047047047047047, 0.2, 0.0, 2.0E-4);
+                addControlPoint(142, 0.46604924251983076, 0.2, 0.0, 2.0E-4);
+                addControlPoint(148, 0.45681158622335094, 0.2, 0.0, 0.0);
+                addControlPoint(155, 0.43602685955627135, 0.2, 0.0, 0.0);
+                addControlPoint(171, 0.2, 0.2, 0.0, 0.402);
+                addControlPoint(253, 0.0, 0.0, 0.0, 0.3872);
                 break;
             case "stent8.fld":
                 addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
