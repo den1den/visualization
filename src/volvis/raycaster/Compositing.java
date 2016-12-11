@@ -85,13 +85,9 @@ public class Compositing extends RaycastRenderer.RendererClass {
                     
                     final double sampleAlpha = 1 - Math.pow(1 - sampleColor.a, alphaCorrectionFactor);
 
-                    double colorR;
-                    double colorG;
-                    double colorB;
-                    if (!r.shading) {
-                        colorR = baseColorR;
-                        colorG = baseColorG;
-                        colorB = baseColorB;
+                    double I;
+                    if (!r.shading || interactive) {
+                        I = 1;
                     } else {
                         r.getPosition(voxelPos, q[0], q[1], q[2]);
                         final VoxelGradient vGradient = gv.getGradient(voxelPos[0], voxelPos[1], voxelPos[2]);
@@ -104,19 +100,17 @@ public class Compositing extends RaycastRenderer.RendererClass {
                             distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
                             //distFactor = 1;
 
-                            colorR = r.phongKa + distFactor * (baseColorR * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
-                            colorG = r.phongKa + distFactor * (baseColorG * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
-                            colorB = r.phongKa + distFactor * (baseColorB * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                            I = (r.phongKa + (r.phongKd * l_dot_n + r.phongKs * n_dot_h));
                         } else {
                             // skip
-                            continue;
+                            I = 1;
                         }
                     }
                     
                     final double cumAlphaFactor = (1 - cumAlpha);
-                    pixelColorR += colorR * sampleAlpha * cumAlphaFactor;
-                    pixelColorG += colorG * sampleAlpha * cumAlphaFactor;
-                    pixelColorB += colorB * sampleAlpha * cumAlphaFactor;
+                    pixelColorR += I * baseColorR * sampleAlpha * cumAlphaFactor;
+                    pixelColorG += I * baseColorG * sampleAlpha * cumAlphaFactor;
+                    pixelColorB += I * baseColorB * sampleAlpha * cumAlphaFactor;
 
                     cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
                     if (interactive && cumAlpha >= 0.6) {

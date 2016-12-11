@@ -4,13 +4,10 @@
  */
 package gui;
 
-import java.io.File;
 import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFileChooser;
 import volvis.raycaster.TF2D;
 import javax.swing.JOptionPane;
-import util.Settings;
 import volvis.raycaster.CenterSlicer;
 import volvis.raycaster.Compositing;
 import volvis.raycaster.Mip;
@@ -18,13 +15,13 @@ import volvis.raycaster.RaycastRenderer;
 
 /**
  *
- * @author michel
+ * @author michel6
  */
 public class RaycastRendererPanel extends javax.swing.JPanel {
     
-    private double phongKs = 0.2;
-    private double phongKd = 0.7;
     private double phongKa = 0.1;
+    private double phongKd = 0.7;
+    private double phongKs = 0.2;
     private double phongAlpha = 10;
     public double phongK1 = 1;
     public double phongK2 = 1;
@@ -320,7 +317,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
 
     private void phongKaTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_phongKaTextActionPerformed
         try {
-            phongKa = (int) Double.parseDouble(phongKaText.getText());
+            phongKa = (double) Double.parseDouble(phongKaText.getText());
             renderer.changed();
         } catch (NumberFormatException e) {
             phongKaText.setText(String.valueOf(phongKa));
@@ -331,7 +328,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
 
     private void phongKdTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_phongKdTextActionPerformed
         try {
-            phongKd = (int) Double.parseDouble(phongKdText.getText());
+            phongKd = (double) Double.parseDouble(phongKdText.getText());
             renderer.changed();
         } catch (NumberFormatException e) {
             phongKdText.setText(String.valueOf(phongKd));
@@ -342,7 +339,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
 
     private void phongKsTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_phongKsTextActionPerformed
         try {
-            phongKs = (int) Double.parseDouble(phongKsText.getText());
+            phongKs = (double) Double.parseDouble(phongKsText.getText());
             renderer.changed();
         } catch (NumberFormatException e) {
             phongKsText.setText(String.valueOf(phongKs));

@@ -12,10 +12,7 @@ import util.VectorMath;
  *
  * @author michel
  */
-public class VoxelGradient implements Serializable {
-
-    private static final long serialVersionUID = -8890477117370292870L;
-
+public class VoxelGradient {
     public final float x, y, z;
     public final float mag;
 

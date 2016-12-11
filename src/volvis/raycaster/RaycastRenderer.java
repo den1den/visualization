@@ -61,6 +61,9 @@ public class RaycastRenderer extends Renderer {
         volume = vol;
 
         System.out.println("Computing gradients");
+        if(gradients != null){
+            gradients.clear();
+        }
         gradients = new ApxGradientVolume(vol);
 
         // set up image for storing the resulting rendering

@@ -115,45 +115,39 @@ public class TF2D extends RaycastRenderer.RendererClass {
                     sampleAlpha *= baseAlpha;
                     sampleAlpha = 1 - Math.pow(1 - sampleAlpha, alphaCorrectionFactor);
                     
-                    final double cumAlphaFactor = (1 - cumAlpha);
-                    
+                    double I;
                     if (!r.shading) {
-                        pixelColorR += baseColorR * sampleAlpha * cumAlphaFactor;
-                        pixelColorG += baseColorG * sampleAlpha * cumAlphaFactor;
-                        pixelColorB += baseColorB * sampleAlpha * cumAlphaFactor;
-                        
-                        totalSamples++;
-                        cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
+                        I = 1;
                     } else {
-                        double dot = vGradient.dot(vVec);
+                        double dot = vGradient.normalDot(vVec);
                         if (dot > 0) {
                             double l_dot_n = dot;
                             double n_dot_h = Math.pow(dot, r.phongAlpha);
 
-                            double distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
-                            distFactor = 1;
+                            double distFactor;
+                            distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
+                            //distFactor = 1;
 
-                            final double phongR = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
-                            final double phongG = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
-                            final double phongB = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
-
-                            pixelColorR += baseColorB * phongR * cumAlphaFactor;
-                            pixelColorG += baseColorG * phongG * cumAlphaFactor;
-                            pixelColorB += baseColorB * phongB * cumAlphaFactor;
-                            
-                            totalSamples++;
-                            cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
+                            I = (r.phongKa + (r.phongKd * l_dot_n + r.phongKs * n_dot_h));
                         } else {
                             // skip
+                            I = 1;
                         }
                     }
                     
-                    if (false && cumAlpha >= 0.6) {
+                    final double cumAlphaFactor = (1 - cumAlpha);
+                    pixelColorR += I * baseColorR * sampleAlpha * cumAlphaFactor;
+                    pixelColorG += I * baseColorG * sampleAlpha * cumAlphaFactor;
+                    pixelColorB += I * baseColorB * sampleAlpha * cumAlphaFactor;
+
+                    cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
+                    if (interactive && cumAlpha >= 0.6) {
                         cutoffRays++;
                         s = stepsBack + stepsFurther;
                     }
                     VectorMath.setAddVector(q, dq);
                     distance += dView;
+                    totalSamples++;
                 }
                 // the background is black
 
