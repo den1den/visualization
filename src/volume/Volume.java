@@ -17,6 +17,12 @@ public class Volume {
     
     private Path file;
 
+    public Volume(int dimX, int dimY, int dimZ) {
+        this.dimX = dimX;
+        this.dimY = dimY;
+        this.dimZ = dimZ;
+    }
+
     public Volume(File file) {
         this.file = file.toPath();
         try {
