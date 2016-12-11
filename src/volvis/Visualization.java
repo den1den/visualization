@@ -18,10 +18,6 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import sun.misc.Lock;
 import util.TFChangeListener;
 import util.TrackballInteractor;
 

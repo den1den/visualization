@@ -26,6 +26,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
 
     private TransferFunction tfunc;
     private final int DOTSIZE = 8;
+    private static final double SCALE_BASE = 4;
     private int selected;
     private Point dragStart;
     private TransferFunctionEditor editor;
@@ -82,7 +83,11 @@ public class TransferFunctionView extends javax.swing.JPanel {
             double t = (double) (s - min) / (double) range;
             //System.out.println("t = " + t);
             int xpos = (int) (t * w);
-            int ypos = h - (int) (color.a * h);
+//            double apparentAlpha = h / (LOG_BASE - 1) * (Math.pow(LOG_BASE, color.a) - 1);
+//            double apparentAlpha = Math.log1p(color.a * (LOG_BASE-1) / h);
+            double apparentAlpha = Math.pow(color.a, 1/SCALE_BASE); // TODO: This is not very clever
+            
+            int ypos = (int) (h*(1 - apparentAlpha));
             //System.out.println("x = " + xpos + "; y = " + ypos);
             g2.setColor(Color.black);
             g2.fillOval(xpos - DOTSIZE / 2, ypos - DOTSIZE / 2, DOTSIZE, DOTSIZE);
@@ -182,6 +187,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
             int s = (int) ((t * range) + min);
             //System.out.println("s = " + s);
             double a = (h - dragEnd.y) / h;
+            a = Math.pow(a, SCALE_BASE);
             //System.out.println("a = " + a);
 
             tfunc.updateControlPointScalar(selected, s);
@@ -201,7 +207,9 @@ public class TransferFunctionView extends javax.swing.JPanel {
             boolean inside = false;
             int idx = 0;
             while (!inside && idx < controlPoints.size()) {
-                inside = inside || getControlPointArea(controlPoints.get(idx)).contains(e.getPoint());
+                Point apperentPoint = e.getPoint();
+                apperentPoint.y = apperentPoint.y; //TODO fix this
+                inside = inside || getControlPointArea(controlPoints.get(idx)).contains(apperentPoint);
                 if (inside) {
                     break;
                 } else {
