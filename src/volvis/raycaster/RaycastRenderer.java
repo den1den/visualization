@@ -14,6 +14,11 @@ import gui.RaycastRendererPanel.ValueFunction;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
@@ -28,7 +33,7 @@ import volvis.TransferFunction;
 public class RaycastRenderer extends Renderer {
 
     public RendererClass getDefault() {
-        return new TF2D(this);
+        return new Compositing(this);
     }
 
     protected Volume volume = null;
@@ -315,7 +320,7 @@ public class RaycastRenderer extends Renderer {
         result[2] = zI;
     }
     
-    public float getVoxel(double x, double y, double z) throws AssertionError {
+    public float getVoxelValue(double x, double y, double z) throws AssertionError {
         switch (valueFunction) {
             case TRI_LINEAR:
                 return volume.getTriVoxel(x, y, z);
@@ -329,8 +334,8 @@ public class RaycastRenderer extends Renderer {
     }
 
     TFColor getTFColor(double x, double y, double z) {
-        float voxel = getVoxel(x, y, z);
-        return tFunc.getColor((int) voxel);
+        float voxelValue = getVoxelValue(x, y, z);
+        return tFunc.getColor((int) voxelValue);
     }
 
     static void setPixel(BufferedImage image, int i, int j, double a, double r, double g, double b) {

@@ -4,10 +4,13 @@
  */
 package gui;
 
+import java.io.File;
 import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JFileChooser;
 import volvis.raycaster.TF2D;
 import javax.swing.JOptionPane;
+import util.Settings;
 import volvis.raycaster.CenterSlicer;
 import volvis.raycaster.Compositing;
 import volvis.raycaster.Mip;
@@ -23,6 +26,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     private double phongKd = 0.7;
     private double phongKa = 0.1;
     private double phongAlpha = 10;
+    public double phongK1 = 1;
+    public double phongK2 = 1;
 
     public double getPhongKs() {
         return phongKs;
@@ -131,6 +136,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
+        shadingCheckbox.setSelected(true);
         shadingCheckbox.setText("Volume shading");
         shadingCheckbox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

@@ -65,7 +65,7 @@ public class Mip extends RaycastRenderer.RendererClass {
                 float maxVoxel = 0;
 
                 for (int k = 0; k < steps + 1; k++) {
-                    float voxel = r.getVoxel(q[0], q[1], q[2]);
+                    float voxel = r.getVoxelValue(q[0], q[1], q[2]);
                     if (voxel > maxVoxel) {
                         maxVoxel = voxel;
                     }

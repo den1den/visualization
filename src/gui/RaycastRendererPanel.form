@@ -148,6 +148,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="shadingCheckbox">
       <Properties>
+        <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Volume shading"/>
       </Properties>
       <Events>

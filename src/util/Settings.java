@@ -17,6 +17,6 @@ import java.nio.file.FileSystems;
 public class Settings {
     //public static File defaultFile = new File("/home/dennis/repos/Visualization/set1_data/orange.fld");
     public static final File set1_data = new File("D:\\Repos\\TUE\\visualization\\set1_data");
-    public static final File defaultFile = new File(set1_data, "orange.fld");
+    public static final File defaultFile = new File(set1_data, "bonsai.fld");
     
 }
