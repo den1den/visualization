@@ -24,24 +24,20 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
     @Override
     protected void render(double[] view, double[] uVec, double[] vVec) {
         // image
-        BufferedImage image = r.getImage();
-        final int imageHeight = image.getHeight();
-        final int imageWidth = image.getHeight();
-        final int imageCenter = imageWidth / 2;
-        
+        final BufferedImage image = r.getImage();
+        final int imageCenter = image.getWidth() / 2;
+        final int imageHeight = image.getWidth();
+        final int imageWidth = image.getWidth();
 
         // volume
-        Volume volume = r.getVolume();
+        final Volume volume = r.getVolume();
+        final float max = r.volume.getMaximum();
         final double[] volumeCenter = volume.getCenter();
-
-        // color
-        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
-
-        // sample on a plane through the origin of the volume data
-        TFColor color;
 
         for (int j = 0; j < imageHeight; j++) {
             for (int i = 0; i < imageWidth; i++) {
+                // foreach pixel
+                // sample on a plane through the origin of the volume data
                 double x = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
                 double y = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
@@ -49,8 +45,8 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
                 double z = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
                 
-                color = r.getTFColor(x, y, z);
-                setPixel(image, i, j, color);
+                float v = r.getVoxelValue(x, y, z) / max;
+                setPixel(image, i, j, 1, v, v, v);
             }
         }
     }

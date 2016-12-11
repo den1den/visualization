@@ -28,7 +28,7 @@ import volvis.TransferFunction;
 public class RaycastRenderer extends Renderer {
 
     public RendererClass getDefault() {
-        return new Compositing(this);
+        return new CenterSlicer(this);
     }
 
     protected Volume volume = null;
