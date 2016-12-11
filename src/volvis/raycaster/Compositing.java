@@ -5,8 +5,10 @@
  */
 package volvis.raycaster;
 
+import gui.TransferFunction2DEditor;
 import java.awt.image.BufferedImage;
 import util.VectorMath;
+import volume.GradientVolume;
 import volume.Volume;
 import volvis.TFColor;
 import static volvis.raycaster.RaycastRenderer.setPixel;
@@ -19,59 +21,65 @@ public class Compositing extends RaycastRenderer.RendererClass {
     }
 
     @Override
-    protected void render(double[] viewVec, double[] uVec, double[] vVec) {
+    protected void render(double[] view, double[] uVec, double[] vVec) {
+        final double[] q = new double[3];
+        final double[] lambdas = new double[2];
+        final int[] voxelPos = new int[3];
+
         // image
-        BufferedImage image = r.getImage();
+        final BufferedImage image = r.getImage();
         final int imageCenter = image.getWidth() / 2;
         final int imageHeight = image.getWidth();
         final int imageWidth = image.getWidth();
 
         // volume
-        Volume volume = r.getVolume();
+        final Volume volume = r.getVolume();
+        final GradientVolume gv = r.getGradients();
         final double[] volumeCenter = volume.getCenter();
 
-        // q = sample on a line through the origin of the volume data
-        double[] q = new double[3];
-        double[] ts = new double[2]; // intersection points with bounding box
-
-        double[] dq = VectorMath.getCopy(viewVec);
-        double dv = (double) (volume.getMinIntersectionLength()) / (r.steps);
-        VectorMath.setScale(dq, dv);
+        // set sampeling vector s.t. at least `r.steps` are made throught the volume
+        double dView = ((double) volume.getMinIntersectionLength()) / (r.steps - 1);
+        final double[] dq = VectorMath.getScale(view, dView);
 
         for (int j = 0; j < imageHeight; j++) {
             for (int i = 0; i < imageWidth; i++) {
-                // q = projection of a pixel to the 'slicer'-plane through image origin
+                // foreach pixel
+
                 VectorMath.setVector(q, volumeCenter);
                 VectorMath.setAddVector(q, (i - imageCenter), uVec);
                 VectorMath.setAddVector(q, (j - imageCenter), vVec);
+                // vector q is on the ray of this pixel
 
                 // calculate raycast intersection
-                if (!volume.intersect(ts, q, viewVec)) {
+                if (!volume.intersect(lambdas, q, view)) {
                     // No intersection
                     image.setRGB(i, j, 0);
                     continue;
                 }
-                final double t0 = ts[0];
-                final double t1 = ts[1];
+                // closest intersection
+                final double lambda_0 = lambdas[0];
+                final int stepsBack = -(int) Math.ceil(lambda_0 / dView);
+                // furthest intersection
+                final double lambda_1 = lambdas[1];
+                final int stepsFurther = (int) Math.ceil(lambda_1 / dView);
 
-                VectorMath.setAddVector(q, t0, viewVec);
+                // set q at furthest point
+                VectorMath.setAddVector(q, -stepsBack * dView, view);
 
-                int steps = (int) Math.ceil((t1 - t0) / dv); // assert |viewVec|=1
-
-                double red = 0, g = 0, b = 0;
+                // prepare pixel value
+                double pixelColorR = 0, pixelColorG = 0, pixelColorB = 0;
                 double cumAlpha = 1;
-
-                for (int k = 0; k < steps + 1; k++) {
-                    TFColor sampledC = r.getColor(q[0], q[1], q[2]);
-                    red += sampledC.r * sampledC.a * cumAlpha;
-                    g += sampledC.g * sampledC.a * cumAlpha;
-                    b += sampledC.b * sampledC.a * cumAlpha;
+                for (int s = 0; s < stepsBack + stepsFurther; s++) {
+                    TFColor sampledC = r.getTFColor(q[0], q[1], q[2]);
+                    pixelColorR += sampledC.r * sampledC.a * cumAlpha;
+                    pixelColorG += sampledC.g * sampledC.a * cumAlpha;
+                    pixelColorB += sampledC.b * sampledC.a * cumAlpha;
                     cumAlpha = cumAlpha * (1 - sampledC.a);
 
                     VectorMath.setAddVector(q, dq);
                 }
                 
-                setPixel(image, i, j, 1, red, g, b);
+                setPixel(image, i, j, 1, pixelColorR, pixelColorG, pixelColorB);
 
                 if (i % 100 == 0 && j == i) {
                     // System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);

@@ -20,7 +20,7 @@ public class Mip extends RaycastRenderer.RendererClass {
     }
 
     @Override
-    protected void render(double[] viewVec, double[] uVec, double[] vVec) {
+    protected void render(double[] view, double[] uVec, double[] vVec) {
         // image
         BufferedImage image = r.getImage();
         final int imageCenter = image.getWidth() / 2;
@@ -38,7 +38,7 @@ public class Mip extends RaycastRenderer.RendererClass {
         double[] q = new double[3];
         double[] ts = new double[2]; // intersection points with bounding box
 
-        double[] dq = VectorMath.getCopy(viewVec);
+        double[] dq = VectorMath.getCopy(view);
         double dv = (double) (volume.getMinIntersectionLength()) / (r.steps + 1);
         VectorMath.setScale(dq, dv);
 
@@ -50,7 +50,7 @@ public class Mip extends RaycastRenderer.RendererClass {
                 VectorMath.setAddVector(q, (j - imageCenter), vVec);
 
                 // calculate raycast intersection
-                if (!volume.intersect(ts, q, viewVec)) {
+                if (!volume.intersect(ts, q, view)) {
                     // No intersection
                     image.setRGB(i, j, 0);
                     continue;
@@ -58,7 +58,7 @@ public class Mip extends RaycastRenderer.RendererClass {
                 final double t0 = ts[0];
                 final double t1 = ts[1];
 
-                VectorMath.setAddVector(q, t0, viewVec);
+                VectorMath.setAddVector(q, t0, view);
 
                 int steps = (int) Math.ceil((t1 - t0) / dv); // assert |viewVec|=1
 

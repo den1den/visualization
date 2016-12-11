@@ -23,10 +23,22 @@ public class TrackballInteractor {
     public TrackballInteractor(int width, int height) {
         this.width = width;
         this.height = height;
-        trackballXform[0] = 1.0;
-        trackballXform[5] = 1.0;
-        trackballXform[10] = 1.0;
-        trackballXform[15] = 1.0;
+        trackballXform[0] = -0.776176929473877;
+        trackballXform[1] = 0.18221068382263184;
+        trackballXform[2] = -0.6036097407341003;
+        trackballXform[3] = 0.0;
+        trackballXform[4] = -0.0018545325146988034;
+        trackballXform[5] = -0.9579867124557495;
+        trackballXform[6] = -0.28680092096328735;
+        trackballXform[7] = 0;
+        trackballXform[8] = -0.6305094361305237;
+        trackballXform[9] = -0.2214893400669098;
+        trackballXform[10] = 0.7439061999320984;
+        trackballXform[11] = 0;
+        trackballXform[12] = 0;
+        trackballXform[13] = 0;
+        trackballXform[14] = 0;
+        trackballXform[15] = 1;
     }
 
     public void setDimensions(int w, int h) {

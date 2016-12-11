@@ -17,7 +17,6 @@ import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
-import volume.VoxelGradient;
 import volvis.Renderer;
 import volvis.TFColor;
 import volvis.TransferFunction;
@@ -44,6 +43,7 @@ public class RaycastRenderer extends Renderer {
     
     ValueFunction valueFunction;
     int steps;
+    boolean shading;
     RendererClass rendererClass = null;
     private final float FAST_IMAGE_SCALE = 1.5f;
 
@@ -83,6 +83,7 @@ public class RaycastRenderer extends Renderer {
 
         // Link the editor to our tFunc
         tFunc.addTFChangeListener(this);
+//        double[] logHistogram = volume.getScaledHistogram();
         double[] logHistogram = volume.getScaledHistogram();
         tfEditor = new TransferFunctionEditor(tFunc, logHistogram);
 
@@ -234,7 +235,11 @@ public class RaycastRenderer extends Renderer {
         options.setLastVisualizeTime(System.currentTimeMillis() - startTime, steps);
     }
 
-
+    protected double phongKs;
+    protected double phongKd;
+    protected double phongKa;
+    protected double phongAlpha;
+    
     /**
      * Sets the RGB values in this.image on update
      *
@@ -244,9 +249,17 @@ public class RaycastRenderer extends Renderer {
         if (isInteractiveMode()) {
             steps = options.getEstSteps();
             valueFunction = ValueFunction.fastest();
+            shading = false;
         } else {
             steps = options.getMaxSteps();
             valueFunction = options.getValueFunction();
+            shading = options.isShading();
+            if(shading){
+                phongKs = options.getPhongKs();
+                phongKd = options.getPhongKd();
+                phongKa = options.getPhongKa();
+                phongAlpha = options.getPhongAlpha();
+            }
         }
 
         // clear image
@@ -261,6 +274,7 @@ public class RaycastRenderer extends Renderer {
          * Vector in the direction of viewing
          */
         double[] viewVec = VectorMath.newVector(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+        assert VectorMath.getLength(viewVec) == 1;
         /**
          * Vector to the right side of the screen
          */
@@ -314,7 +328,7 @@ public class RaycastRenderer extends Renderer {
         }
     }
 
-    TFColor getColor(double x, double y, double z) {
+    TFColor getTFColor(double x, double y, double z) {
         float voxel = getVoxel(x, y, z);
         return tFunc.getColor((int) voxel);
     }
@@ -390,6 +404,6 @@ public class RaycastRenderer extends Renderer {
             this.r = r;
         }
 
-        protected abstract void render(double[] viewVec, double[] uVec, double[] vVec);
+        protected abstract void render(double[] view, double[] uVec, double[] vVec);
     }
 }

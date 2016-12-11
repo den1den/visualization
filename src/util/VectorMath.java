@@ -25,7 +25,7 @@ public class VectorMath {
     }
 
     // compute dotproduct of vectors v and w
-    public static double setDotProduct(double[] v, double[] w) {
+    public static double getDotProduct(double[] v, double[] w) {
         double r = 0;
         for (int i=0; i<3; i++) {
             r += v[i] * w[i];
@@ -37,7 +37,7 @@ public class VectorMath {
     public static double distance(double[] v, double[] w) {
         double[] tmp = new double[3];
         VectorMath.setVector(tmp, v[0]-w[0], v[1]-w[1], v[2]-w[2]);
-        return Math.sqrt(VectorMath.setDotProduct(tmp, tmp));
+        return Math.sqrt(VectorMath.getDotProduct(tmp, tmp));
     }
 
     // compute dotproduct of v and w

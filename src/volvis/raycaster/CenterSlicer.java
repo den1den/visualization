@@ -22,7 +22,7 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
     }
 
     @Override
-    protected void render(double[] viewVec, double[] uVec, double[] vVec) {
+    protected void render(double[] view, double[] uVec, double[] vVec) {
         // image
         BufferedImage image = r.getImage();
         final int imageHeight = image.getHeight();
@@ -49,7 +49,7 @@ public class CenterSlicer extends RaycastRenderer.RendererClass{
                 double z = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
                 
-                color = r.getColor(x, y, z);
+                color = r.getTFColor(x, y, z);
                 setPixel(image, i, j, color);
             }
         }

@@ -18,6 +18,31 @@ import volvis.raycaster.RaycastRenderer;
  * @author michel
  */
 public class RaycastRendererPanel extends javax.swing.JPanel {
+    
+    private double phongKs = 0.2;
+    private double phongKd = 0.7;
+    private double phongKa = 0.1;
+    private double phongAlpha = 10;
+
+    public double getPhongKs() {
+        return phongKs;
+    }
+
+    public double getPhongKd() {
+        return phongKd;
+    }
+
+    public double getPhongKa() {
+        return phongKa;
+    }
+
+    public double getPhongAlpha() {
+        return phongAlpha;
+    }
+
+    public boolean isShading() {
+        return shadingCheckbox.isSelected();
+    }
 
     public enum ValueFunction {
         TRI_LINEAR,
@@ -210,7 +235,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+        renderer.changed();
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
