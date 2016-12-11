@@ -215,12 +215,16 @@ public class Volume {
     public int getMinIntersectionLength() {
         return Math.min(dimX, Math.min(dimY, dimZ));
     }
+    
+    public boolean outRange(double x, double y, double z){
+        return x < 0 || x > dimX - 1 || y < 0 || y > dimY - 1 || z < 0 || z > dimZ - 1;
+    }
 
     /**
      * Floored Voxel
      */
     public short getFloorVoxel(double x, double y, double z) {
-        if (x < 0 || x > dimX - 1 || y < 0 || y > dimY - 1 || z < 0 || z > dimZ - 1) {
+        if (outRange(x, y, z)) {
             return 0;
         }
 

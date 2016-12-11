@@ -35,7 +35,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
         double[] ts = new double[2]; // intersection points with bounding box
 
         double[] dq = VectorMath.getCopy(viewVec);
-        double dv = (double) (volume.getMinIntersectionLength()) / (r.steps + 1);
+        double dv = (double) (volume.getMinIntersectionLength()) / (r.steps);
         VectorMath.setScale(dq, dv);
 
         for (int j = 0; j < imageHeight; j++) {

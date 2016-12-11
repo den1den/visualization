@@ -14,8 +14,8 @@ public class VoxelGradient implements Serializable{
 
     private static final long serialVersionUID = -8890477117370292870L;
 
-    public float x, y, z;
-    public float mag;
+    public final float x, y, z;
+    public final float mag;
     
     public VoxelGradient() {
         x = y = z = mag = 0.0f;

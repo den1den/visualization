@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
+import volume.VoxelGradient;
 import volvis.Renderer;
 import volvis.TFColor;
 import volvis.TransferFunction;
@@ -28,7 +29,7 @@ import volvis.TransferFunction;
 public class RaycastRenderer extends Renderer {
 
     public RendererClass getDefault() {
-        return new CenterSlicer(this);
+        return new TF2D(this);
     }
 
     protected Volume volume = null;
@@ -99,6 +100,10 @@ public class RaycastRenderer extends Renderer {
 
     public TransferFunctionEditor getTFPanel() {
         return tfEditor;
+    }
+
+    public GradientVolume getGradients() {
+        return gradients;
     }
 
     /**
@@ -273,8 +278,29 @@ public class RaycastRenderer extends Renderer {
         options.setActualStepsToTake(steps);
         rendererClass.render(viewVec, uVec, vVec);
     }
-    
 
+    void getPosition(int[] result, double x, double y, double z){
+        int xI, yI, zI;
+        switch (valueFunction) {
+            case TRI_LINEAR:
+            case NEAREST:
+                xI = (int) Math.round(x);
+                yI = (int) Math.round(y);
+                zI = (int) Math.round(z);
+                break;
+            case ROUND_DOWN:
+                xI = (int) x;
+                yI = (int) y;
+                zI = (int) z;
+                break;
+            default:
+                throw new AssertionError(valueFunction.name());
+        }
+        result[0] = xI;
+        result[1] = yI;
+        result[2] = zI;
+    }
+    
     public float getVoxel(double x, double y, double z) throws AssertionError {
         switch (valueFunction) {
             case TRI_LINEAR:
@@ -347,6 +373,10 @@ public class RaycastRenderer extends Renderer {
 
     int getApparentWidth() {
         return full_image.getWidth();
+    }
+
+    TransferFunction2DEditor.TriangleWidget getIsoContourTriangle() {
+        return tfEditor2D.triangleWidget;
     }
 
     /**
