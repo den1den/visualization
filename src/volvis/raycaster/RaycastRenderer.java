@@ -83,7 +83,7 @@ public class RaycastRenderer extends Renderer {
 
         // Link the editor to our tFunc
         tFunc.addTFChangeListener(this);
-        double[] logHistogram = volume.getLogHistogram();
+        double[] logHistogram = volume.getScaledHistogram();
         tfEditor = new TransferFunctionEditor(tFunc, logHistogram);
 
         tfEditor2D = new TransferFunction2DEditor(volume, gradients);

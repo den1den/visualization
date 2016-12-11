@@ -9,6 +9,7 @@ import java.awt.Color;
 import javax.swing.JColorChooser;
 import volvis.TFColor;
 import volvis.TransferFunction;
+import static volvis.TransferFunction.ALPHA_FORMAT;
 
 /**
  *
@@ -32,10 +33,11 @@ public class TransferFunctionEditor extends javax.swing.JPanel {
         histogramPanel.add(tfView, BorderLayout.CENTER);
     }
 
-    public void setSelectedInfo(int idx, int s, double a, TFColor c) {
+    public void setSelectedInfo(int idx, TransferFunction.ControlPoint cp) {
         selected = idx;
-        scalarTextField.setText(Integer.toString(s));
-        opacityTextField.setText(String.format("%.2f", a));
+        TFColor c = cp.getColor();
+        scalarTextField.setText(Integer.toString(cp.value));
+        opacityTextField.setText(String.format(ALPHA_FORMAT, c.a));
         colorButton.setBackground(new Color((float) c.r, (float) c.g, (float) c.b));
     }
 
@@ -188,6 +190,7 @@ public class TransferFunctionEditor extends javax.swing.JPanel {
             colorButton.setBackground(newColor);
             tfunc.updateControlPointColor(selected, newColor);
             tfunc.changed();
+            tfunc.buildLUT();
             tfView.repaint();
         }
 

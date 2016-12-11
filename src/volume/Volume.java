@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.function.IntUnaryOperator;
 import util.VectorMath;
 
 /**
@@ -129,10 +131,20 @@ public class Volume {
         return histogram;
     }
 
+    double histogram_min = Double.POSITIVE_INFINITY, histogram_max = Double.NEGATIVE_INFINITY;
     private void computeHistogram() {
         histogram = new int[getMaximum() + 1];
         for (int i = 0; i < data.length; i++) {
             histogram[data[i]]++;
+        }
+        for (int i = 0; i < histogram.length; i++) {
+            int h = histogram[i];
+            if(h < histogram_min){
+                histogram_min = h;
+            }
+            if(h > histogram_max){
+                histogram_max = h;
+            }
         }
     }
 
@@ -319,12 +331,43 @@ public class Volume {
         return Math.sqrt(dimX * dimX + dimY * dimY + dimZ * dimZ);
     }
 
-    public double[] getLogHistogram() {
+    public double[] getScaledHistogram() {
         double[] logHistogram = new double[histogram.length];
         for (int i = 0; i < histogram.length; i++) {
             logHistogram[i] = Math.log(histogram[i]);
         }
         return logHistogram;
+    }
+
+    @Deprecated
+    public double[] getDerivHistogram() {
+        double[] result = new double[histogram.length - 1];
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < result.length; i++) {
+            int h0 = histogram[i];
+            int h1 = histogram[i + 1];
+            if(h0 > histogram_max * 0.8 || h1 > histogram_max *0.8){
+                result[i] = 0;
+            } else {
+                result[i] = histogram[i+1] - histogram[i];
+            }
+            if(result[i] < min){
+                min = result[i];
+            }
+            if(result[i] > max){
+                max = result[i];
+            }
+        }
+        for (int i = 0; i < result.length; i++) {
+            if(result[i] >= max * 0.8){
+                //result[i] = 0;
+            } else {
+                
+            }
+            result[i] = Math.log(result[i] - min);
+        }
+        return result;
     }
     
     public Path getPreviewImagePath(Class rendererClass){

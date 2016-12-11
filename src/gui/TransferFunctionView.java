@@ -26,9 +26,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
 
     private TransferFunction tfunc;
     private final int DOTSIZE = 8;
-    private static final double SCALE_BASE = 4;
     private int selected;
-    private Point dragStart;
     private TransferFunctionEditor editor;
     private double[] histogram;
 
@@ -46,14 +44,12 @@ public class TransferFunctionView extends javax.swing.JPanel {
 
     @Override
     public void paintComponent(Graphics g) {
-
         Graphics2D g2 = (Graphics2D) g;
 
         int w = this.getWidth();
         int h = this.getHeight() - 30;
         int range = tfunc.getMaximum() - tfunc.getMinimum();
         int min = tfunc.getMinimum();
-
 
         g2.setColor(Color.white);
         g2.fillRect(0, 0, w, h);
@@ -71,26 +67,20 @@ public class TransferFunctionView extends javax.swing.JPanel {
             g2.fill(new Rectangle2D.Double(i*binWidth, h-scalingFactor*histogram[i], binWidth, scalingFactor*histogram[i]));
         }
         
-
+        // draw controll points with a line
         ArrayList<TransferFunction.ControlPoint> controlPoints = tfunc.getControlPoints();
         int xprev = -1;
         int yprev = -1;
         for (int i = 0; i < controlPoints.size(); i++) {
             TransferFunction.ControlPoint cp = controlPoints.get(i);
-            int s = cp.value;
-            //System.out.println("s = " + s);
-            TFColor color = cp.color;
-            double t = (double) (s - min) / (double) range;
-            //System.out.println("t = " + t);
-            int xpos = (int) (t * w);
-//            double apparentAlpha = h / (LOG_BASE - 1) * (Math.pow(LOG_BASE, color.a) - 1);
-//            double apparentAlpha = Math.log1p(color.a * (LOG_BASE-1) / h);
-            double apparentAlpha = Math.pow(color.a, 1/SCALE_BASE); // TODO: This is not very clever
+            Ellipse2D el = getControlPointArea(cp);
             
-            int ypos = (int) (h*(1 - apparentAlpha));
             //System.out.println("x = " + xpos + "; y = " + ypos);
             g2.setColor(Color.black);
-            g2.fillOval(xpos - DOTSIZE / 2, ypos - DOTSIZE / 2, DOTSIZE, DOTSIZE);
+            g2.fillOval((int) el.getMinX(), (int) el.getMinY(), (int)el.getWidth(), (int) el.getHeight());
+            
+            int xpos = (int) el.getCenterX();
+            int ypos = (int) el.getCenterY();
             if (xprev > -1) {
                 g2.drawLine(xpos, ypos, xprev, yprev);
             }
@@ -113,12 +103,13 @@ public class TransferFunctionView extends javax.swing.JPanel {
         int h = this.getHeight() - 30;
         int range = tfunc.getMaximum() - tfunc.getMinimum();
         int min = tfunc.getMinimum();
-
-        int s = cp.value;
-        TFColor color = cp.color;
-        double t = (double) (s - min) / (double) range;
+        
+        double t = (double) (cp.value - min) / (double) range;
         int xpos = (int) (t * w);
-        int ypos = h - (int) (color.a * h);
+        
+        double sAplha = cp.getScaled();
+        int ypos = (int) (h * (1 - sAplha));
+        
         Ellipse2D bounds = new Ellipse2D.Double(xpos - DOTSIZE / 2, ypos - DOTSIZE / 2, DOTSIZE, DOTSIZE);
         return bounds;
     }
@@ -176,23 +167,22 @@ public class TransferFunctionView extends javax.swing.JPanel {
                 if (dragEnd.y > getHeight() - 30) {
                     dragEnd.y = getHeight() - 30;
                 }
-
             }
 
             double w = getWidth();
             double h = getHeight() - 30;
             int range = tfunc.getMaximum() - tfunc.getMinimum();
             int min = tfunc.getMinimum();
+            
             double t = dragEnd.x / w;
             int s = (int) ((t * range) + min);
-            //System.out.println("s = " + s);
-            double a = (h - dragEnd.y) / h;
-            a = Math.pow(a, SCALE_BASE);
-            //System.out.println("a = " + a);
+            
+            double sAlpha = (h - dragEnd.y) / h;
 
             tfunc.updateControlPointScalar(selected, s);
-            tfunc.updateControlPointAlpha(selected, a);
-            editor.setSelectedInfo(selected, s, a, controlPoints.get(selected).color);
+            tfunc.updateControlPointScaledAlpha(selected, sAlpha);
+            editor.setSelectedInfo(selected, controlPoints.get(selected));
+            tfunc.buildLUT();
             repaint();
 
         }
@@ -216,19 +206,20 @@ public class TransferFunctionView extends javax.swing.JPanel {
                     idx++;
                 }
             }
+            Point dragStart;
             if (inside) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     selected = idx;
                     //System.out.println("selected: " + controlPoints.get(selected).toString());
                     TransferFunction.ControlPoint cp = controlPoints.get(selected);
-                    editor.setSelectedInfo(selected, cp.value, cp.color.a, cp.color);
+                    editor.setSelectedInfo(selected, cp);
                     dragStart = e.getPoint();
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
                     if (idx > 0 && idx < controlPoints.size() - 1) {
                         tfunc.removeControlPoint(idx);
                         selected = idx - 1;
                         TransferFunction.ControlPoint cp = controlPoints.get(selected);
-                        editor.setSelectedInfo(selected, cp.value, cp.color.a, cp.color);
+                        editor.setSelectedInfo(selected, cp);
                         dragStart = e.getPoint();
                     }
                 }
@@ -246,7 +237,7 @@ public class TransferFunctionView extends javax.swing.JPanel {
                     //System.out.println("a = " + a);
                     selected = tfunc.addControlPoint(s, a);
                     TransferFunction.ControlPoint cp = controlPoints.get(selected);
-                    editor.setSelectedInfo(selected, cp.value, cp.color.a, cp.color);
+                    editor.setSelectedInfo(selected, cp);
                     dragStart = e.getPoint();
                     repaint();
                 }

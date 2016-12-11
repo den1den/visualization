@@ -169,7 +169,7 @@ public class TransferFunction {
         if (value < sMin || value > sMax) {
             return -1;
         }
-        a = Math.floor(a * 100) / 100.0;
+        a = Math.floor(a * ALPHA_PRECISION) / ALPHA_PRECISION;
 
         ControlPoint cp = new ControlPoint(value, new TFColor(r, g, b, a));
         int idx = 0;
@@ -194,13 +194,14 @@ public class TransferFunction {
 
     public void updateControlPointScalar(int index, int s) {
         controlPoints.get(index).value = s;
-        buildLUT();
     }
 
     public void updateControlPointAlpha(int index, double alpha) {
-        alpha = Math.floor(alpha * 100) / 100.0;
         controlPoints.get(index).color.a = alpha;
-        buildLUT();
+    }
+
+    public void updateControlPointScaledAlpha(int index, double sAlpha) {
+        controlPoints.get(index).setScaled(sAlpha);
     }
 
     public void updateControlPointColor(int idx, Color c) {
@@ -208,7 +209,6 @@ public class TransferFunction {
         cp.color.r = c.getRed() / 255.0;
         cp.color.g = c.getGreen() / 255.0;
         cp.color.b = c.getBlue() / 255.0;
-        buildLUT();
     }
 
     public void changed() {
@@ -225,7 +225,7 @@ public class TransferFunction {
     /**
      * Builds an lookup table
      */
-    private void buildLUT() {
+    public void buildLUT() {
 
         for (int i = 1; i < controlPoints.size(); i++) {
             ControlPoint prev = controlPoints.get(i - 1);
@@ -246,13 +246,17 @@ public class TransferFunction {
 
     }
 
+    public static final double SCALE_BASE = 4;
+    public static final double ALPHA_PRECISION = 5000;
+    public static final String ALPHA_FORMAT = "%." + (int) Math.ceil(Math.log10(ALPHA_PRECISION)) + "f";
+
     /**
      * A point along a line with a color value associated with it
      */
     public class ControlPoint implements Comparable<ControlPoint> {
-
+        
         public int value;
-        public TFColor color;
+        private TFColor color;
 
         public ControlPoint(int v, TFColor c) {
             value = v;
@@ -266,7 +270,22 @@ public class TransferFunction {
 
         @Override
         public String toString() {
-            return new String("(" + value + ") -> " + color.toString());
+            return "(" + value + ") -> " + color.toString();
+        }
+
+        public double getScaled() {
+            double val = Math.pow(color.a, 1 / SCALE_BASE);
+            return val;
+        }
+
+        public void setScaled(double alpha) {
+            double val = Math.pow(alpha, SCALE_BASE);
+            val = Math.floor(val * ALPHA_PRECISION) / ALPHA_PRECISION;
+            color.a = val;
+        }
+
+        public TFColor getColor() {
+            return color;
         }
 
     }
