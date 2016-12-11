@@ -9,9 +9,9 @@ import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
+import volume.VoxelGradient;
 import volvis.TFColor;
 import static volvis.raycaster.RaycastRenderer.setPixel;
-
 
 public class Compositing extends RaycastRenderer.RendererClass {
 
@@ -24,6 +24,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
         final double[] q = new double[3];
         final double[] lambdas = new double[2];
         final boolean interactive = r.isInteractiveMode();
+        final int[] voxelPos = new int[3];
 
         // image
         final BufferedImage image = r.getImage();
@@ -33,6 +34,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
 
         // volume
         final Volume volume = r.getVolume();
+        final GradientVolume gv = r.getGradients();
         final double[] volumeCenter = volume.getCenter();
 
         // set sampeling vector s.t. at least `r.steps` are made throught the volume
@@ -40,7 +42,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
         final double[] dq = VectorMath.getScale(view, dView);
 
         final double alphaCorrectionFactor = 300.0 / r.steps;
-        
+
         int missedRays = 0, cutoffRays = 0, totalSamples = 0;
         for (int j = 0; j < imageHeight; j++) {
             for (int i = 0; i < imageWidth; i++) {
@@ -58,7 +60,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
                     missedRays++;
                     continue;
                 }
-                
+
                 // closest intersection
                 final double lambda_0 = lambdas[0];
                 final int stepsBack = -(int) Math.ceil(lambda_0 / dView);
@@ -67,6 +69,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
                 final int stepsFurther = (int) Math.ceil(lambda_1 / dView);
 
                 // set q at furthest point
+                double distance = 0;
                 VectorMath.setAddVector(q, -stepsBack * dView, view);
 
                 // prepare pixel
@@ -76,32 +79,67 @@ public class Compositing extends RaycastRenderer.RendererClass {
                 for (int s = 0; s < steps; s++) {
                     // sample allong the ray, from front to back
                     final TFColor sampleColor = r.getTFColor(q[0], q[1], q[2]);
-                    final double sampleAlpha = 1 - Math.pow(1 - sampleColor.a, alphaCorrectionFactor);
-                    pixelColorR += sampleColor.r * sampleAlpha * (1 - cumAlpha);
-                    pixelColorG += sampleColor.g * sampleAlpha * (1 - cumAlpha);
-                    pixelColorB += sampleColor.b * sampleAlpha * (1 - cumAlpha);
-                    totalSamples++;
+                    final double baseColorR = sampleColor.r;
+                    final double baseColorG = sampleColor.g;
+                    final double baseColorB = sampleColor.b;
                     
+                    final double sampleAlpha = 1 - Math.pow(1 - sampleColor.a, alphaCorrectionFactor);
+
+                    double colorR;
+                    double colorG;
+                    double colorB;
+                    if (!r.shading) {
+                        colorR = baseColorR;
+                        colorG = baseColorG;
+                        colorB = baseColorB;
+                    } else {
+                        r.getPosition(voxelPos, q[0], q[1], q[2]);
+                        final VoxelGradient vGradient = gv.getGradient(voxelPos[0], voxelPos[1], voxelPos[2]);
+                        double dot = vGradient.normalDot(vVec);
+                        if (dot > 0) {
+                            double l_dot_n = dot;
+                            double n_dot_h = Math.pow(dot, r.phongAlpha);
+
+                            double distFactor;
+                            distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
+                            //distFactor = 1;
+
+                            colorR = r.phongKa + distFactor * (baseColorR * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                            colorG = r.phongKa + distFactor * (baseColorG * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                            colorB = r.phongKa + distFactor * (baseColorB * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                        } else {
+                            // skip
+                            continue;
+                        }
+                    }
+                    
+                    final double cumAlphaFactor = (1 - cumAlpha);
+                    pixelColorR += colorR * sampleAlpha * cumAlphaFactor;
+                    pixelColorG += colorG * sampleAlpha * cumAlphaFactor;
+                    pixelColorB += colorB * sampleAlpha * cumAlphaFactor;
+
                     cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
-                    if(interactive && cumAlpha >= 0.6){
+                    if (interactive && cumAlpha >= 0.6) {
                         cutoffRays++;
                         s = stepsBack + stepsFurther;
                     }
                     VectorMath.setAddVector(q, dq);
+                    distance += dView;
+                    totalSamples++;
                 }
                 // the background is black
-                
+
                 setPixel(image, i, j, 1, pixelColorR, pixelColorG, pixelColorB);
             }
         }
-        if(!interactive){
-        int hitRays = imageWidth * imageHeight - missedRays;
-        System.out.printf("missedRays/rays = %.3f, cutoffRays/hitRays = %.3f, totalSamples=%d\n",
-                ((double) missedRays) / (imageWidth * imageHeight),
-                ((double) cutoffRays) / (hitRays),
-                totalSamples
-        );
+        if (!interactive) {
+            int hitRays = imageWidth * imageHeight - missedRays;
+            System.out.printf("missedRays/rays = %.3f, cutoffRays/hitRays = %.3f, totalSamples=%d\n",
+                    ((double) missedRays) / (imageWidth * imageHeight),
+                    ((double) cutoffRays) / (hitRays),
+                    totalSamples
+            );
         }
     }
-    
+
 }

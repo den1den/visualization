@@ -34,4 +34,8 @@ public class VoxelGradient implements Serializable {
         return v[0] * x + v[1] * y + v[2] * z;
     }
 
+    public double normalDot(double[] v) {
+        return (v[0] * x + v[1] * y + v[2] * z) / mag;
+    }
+
 }

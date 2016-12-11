@@ -12,7 +12,6 @@ import volume.GradientVolume;
 import volume.Volume;
 import volume.VoxelGradient;
 import volvis.TFColor;
-import volvis.raycaster.RaycastRenderer;
 import static volvis.raycaster.RaycastRenderer.setPixel;
 
 /**
@@ -30,11 +29,11 @@ public class TF2D extends RaycastRenderer.RendererClass {
 
     @Override
     protected void render(double[] view, double[] uVec, double[] vVec) {
-        if(true) return;
         final double[] q = new double[3];
         final double[] lambdas = new double[2];
+        final boolean interactive = r.isInteractiveMode();
         final int[] voxelPos = new int[3];
-        
+
         // image
         final BufferedImage image = r.getImage();
         final int imageCenter = image.getWidth() / 2;
@@ -52,12 +51,17 @@ public class TF2D extends RaycastRenderer.RendererClass {
 
         // 2d transfer function
         final TransferFunction2DEditor.TriangleWidget t = r.getIsoContourTriangle();
-        final TFColor surfaceColor = t.color;
+        final double baseColorR = t.color.r;
+        final double baseColorG = t.color.g;
+        final double baseColorB = t.color.b;
+        final double baseAlpha = t.color.a;
+        final double alphaCorrectionFactor = 300.0 / r.steps;
 
+        int missedRays = 0, cutoffRays = 0, totalSamples = 0;
         for (int j = 0; j < imageHeight; j++) {
             for (int i = 0; i < imageWidth; i++) {
                 // foreach pixel
-                
+
                 VectorMath.setVector(q, volumeCenter);
                 VectorMath.setAddVector(q, (i - imageCenter), uVec);
                 VectorMath.setAddVector(q, (j - imageCenter), vVec);
@@ -67,77 +71,102 @@ public class TF2D extends RaycastRenderer.RendererClass {
                 if (!volume.intersect(lambdas, q, view)) {
                     // No intersection
                     image.setRGB(i, j, 0);
+                    missedRays++;
                     continue;
                 }
+
                 // closest intersection
                 final double lambda_0 = lambdas[0];
-                final int stepsBack = - (int) Math.ceil(lambda_0 / dView);
+                final int stepsBack = -(int) Math.ceil(lambda_0 / dView);
                 // furthest intersection
                 final double lambda_1 = lambdas[1];
                 final int stepsFurther = (int) Math.ceil(lambda_1 / dView);
-                
-                // set q at furthest point
-                VectorMath.setAddVector(q, - stepsBack * dView, view);
-                
-                // prepare pixel value
-                double pixelColorR = 0, pixelColorG = 0, pixelColorB = 0;
-                double cumAlpha = 1;
-                for (int s = 0; s < stepsBack + stepsFurther; s++) {
-                    r.getPosition(voxelPos, q[0], q[1], q[2]);
-                    
-                    if (!volume.outRange(voxelPos[0], voxelPos[1], voxelPos[2])) {
-                        
-                        final float vIntensity = volume.getVoxel(voxelPos[0], voxelPos[1], voxelPos[2]);
-                        final VoxelGradient vGradient = gv.getGradient(voxelPos[0], voxelPos[1], voxelPos[2]);
 
-                        double voxelAlpha;
-                        float voxelDiff = Math.abs(vIntensity - t.baseIntensity);
-                        if (vGradient.mag <= EPSILON_GRADIENT) {
-                            if (voxelDiff <= EPSILON_VOXEL) {
-                                voxelAlpha = 1;
-                            } else {
-                                voxelAlpha = 0;
-                            }
+                // set q at furthest point
+                double distance = 0;
+                VectorMath.setAddVector(q, -stepsBack * dView, view);
+
+                // prepare pixel
+                double pixelColorR = 0, pixelColorG = 0, pixelColorB = 0;
+                double cumAlpha = 0; // 'empty space' is transparant
+                final int steps = stepsBack + stepsFurther;
+                for (int s = 0; s < steps; s++) {
+                    // sample allong the ray, from front to back
+                    r.getPosition(voxelPos, q[0], q[1], q[2]);
+                    final float vIntensity = volume.getVoxel(voxelPos[0], voxelPos[1], voxelPos[2]);
+                    final VoxelGradient vGradient = gv.getGradient(voxelPos[0], voxelPos[1], voxelPos[2]);
+                    
+                    double sampleAlpha;
+                    float voxelDiff = Math.abs(vIntensity - t.baseIntensity);
+                    if (vGradient.mag <= EPSILON_GRADIENT) {
+                        if (voxelDiff <= EPSILON_VOXEL) {
+                            sampleAlpha = 1;
                         } else {
-                            // |gradient| > 0
-                            if (voxelDiff <= t.radius * vGradient.mag) {
-                                voxelAlpha = 1 - 1 / t.radius * Math.abs((vIntensity - t.baseIntensity) / vGradient.mag);
-                            } else {
-                                voxelAlpha = 0;
-                            }
+                            sampleAlpha = 0;
                         }
-                        
-                        
-                        if(r.shading){
-                            double dot = vGradient.dot(vVec);
-                            if(dot > 0){
-                                double l_dot_n = dot;
-                                double n_dot_h = Math.pow(dot, r.phongAlpha);
-                                
-                                pixelColorR += 
-                                pixelColorG += surfaceColor.g * voxelAlpha * cumAlpha;
-                                pixelColorB += surfaceColor.b * voxelAlpha * cumAlpha;
-                            }
+                    } else {
+                        // |gradient| > 0
+                        if (voxelDiff <= t.radius * vGradient.mag) {
+                            sampleAlpha = 1 - 1 / t.radius * voxelDiff / vGradient.mag;
                         } else {
-                            
-                        }
-                        pixelColorR += surfaceColor.r * voxelAlpha * cumAlpha;
-                        pixelColorG += surfaceColor.g * voxelAlpha * cumAlpha;
-                        pixelColorB += surfaceColor.b * voxelAlpha * cumAlpha;
-                        cumAlpha = cumAlpha * (1 - voxelAlpha);
-                        if (cumAlpha == 0) {
-                            break;
+                            sampleAlpha = 0;
                         }
                     }
+                    sampleAlpha *= baseAlpha;
+                    sampleAlpha = 1 - Math.pow(1 - sampleAlpha, alphaCorrectionFactor);
+                    
+                    final double cumAlphaFactor = (1 - cumAlpha);
+                    
+                    if (!r.shading) {
+                        pixelColorR += baseColorR * sampleAlpha * cumAlphaFactor;
+                        pixelColorG += baseColorG * sampleAlpha * cumAlphaFactor;
+                        pixelColorB += baseColorB * sampleAlpha * cumAlphaFactor;
+                        
+                        totalSamples++;
+                        cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
+                    } else {
+                        double dot = vGradient.dot(vVec);
+                        if (dot > 0) {
+                            double l_dot_n = dot;
+                            double n_dot_h = Math.pow(dot, r.phongAlpha);
+
+                            double distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
+                            distFactor = 1;
+
+                            final double phongR = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                            final double phongG = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+                            final double phongB = r.phongKa + distFactor * (sampleAlpha * r.phongKd * l_dot_n + r.phongKs * n_dot_h);
+
+                            pixelColorR += baseColorB * phongR * cumAlphaFactor;
+                            pixelColorG += baseColorG * phongG * cumAlphaFactor;
+                            pixelColorB += baseColorB * phongB * cumAlphaFactor;
+                            
+                            totalSamples++;
+                            cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
+                        } else {
+                            // skip
+                        }
+                    }
+                    
+                    if (false && cumAlpha >= 0.6) {
+                        cutoffRays++;
+                        s = stepsBack + stepsFurther;
+                    }
                     VectorMath.setAddVector(q, dq);
+                    distance += dView;
                 }
+                // the background is black
 
                 setPixel(image, i, j, 1, pixelColorR, pixelColorG, pixelColorB);
-
-                if (i % 100 == 0 && j == i) {
-                    // System.out.printf("i=%d, j=%d, steps=%d\n", i, j, steps);
-                }
             }
+        }
+        if (!interactive) {
+            int hitRays = imageWidth * imageHeight - missedRays;
+            System.out.printf("missedRays/rays = %.3f, cutoffRays/hitRays = %.3f, totalSamples=%d\n",
+                    ((double) missedRays) / (imageWidth * imageHeight),
+                    ((double) cutoffRays) / (hitRays),
+                    totalSamples
+            );
         }
     }
 
