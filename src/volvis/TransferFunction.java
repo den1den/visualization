@@ -100,6 +100,22 @@ public class TransferFunction {
                 addControlPoint(245, 0.9858124101984665, 0.9858124101984665, 0.9858124101984665, 0.27);
                 addControlPoint(254, 1.0, 1.0, 1.0, 1.0);
                 break;
+            case "tooth.fld":
+                addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(464, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(482, 1.0, 1.0, 1.0, 0.03);
+                addControlPoint(512, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(742, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(761, 1.0, 1.0, 0.6, 0.01);
+                addControlPoint(855, 0.8, 0.8, 0.0, 0.01);
+                addControlPoint(863, 0.8696365386770794, 0.8696365386770794, 0.18167449520361578, 0.0);
+                addControlPoint(874, 0.3807735587161268, 0.3807735587161268, 0.862953852217175, 0.26);
+                addControlPoint(912, 0.5174615028706339, 0.5174615028706339, 0.8137577991669301, 0.0);
+                addControlPoint(929, 0.7353400303951113, 0.7353400303951113, 0.7353400303951113, 0.0);
+                addControlPoint(955, 0.805293416359993, 0.805293416359993, 0.805293416359993, 0.0);
+                addControlPoint(991, 0.8221972033641093, 0.8221972033641093, 0.8221972033641093, 0.0);
+                addControlPoint(1300, 1.0, 1.0, 1.0, 0.0);
+                break;
             default:
                 System.out.println("No default transfer function known for " + filename);
                 break;
@@ -273,11 +289,11 @@ public class TransferFunction {
 
         @Override
         public void changed() {
-            System.out.print("if(filename.equals(\"" + filename + "\")){");
+            System.out.print("case \"" + filename + "\": ");
             for (ControlPoint p : controlPoints) {
                 System.out.print("addControlPoint(" + p.value + ", " + p.color.r + ", " + p.color.g + ", " + p.color.b + ", " + p.color.a + "); ");
             }
-            System.out.println("\n}");
+            System.out.println("\nbreak;");
         }
 
     }
