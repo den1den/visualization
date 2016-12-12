@@ -113,7 +113,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
                     pixelColorB += I * baseColorB * sampleAlpha * cumAlphaFactor;
 
                     cumAlpha = cumAlpha + (1 - cumAlpha) * sampleAlpha;
-                    if (interactive && cumAlpha >= 0.6) {
+                    if (interactive && cumAlpha >= 0.7) {
                         cutoffRays++;
                         s = stepsBack + stepsFurther;
                     }

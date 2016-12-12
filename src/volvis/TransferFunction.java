@@ -107,20 +107,26 @@ public class TransferFunction {
                 break;
             case "tooth.fld":
                 addControlPoint(0, 0.0, 0.0, 0.0, 0.0);
-                addControlPoint(464, 0.0, 0.0, 0.0, 0.0);
-                addControlPoint(482, 1.0, 1.0, 1.0, 0.03);
-                addControlPoint(512, 1.0, 1.0, 1.0, 0.0);
-                addControlPoint(742, 1.0, 1.0, 1.0, 0.0);
-                addControlPoint(761, 1.0, 1.0, 0.6, 0.01);
-                addControlPoint(855, 0.8, 0.8, 0.0, 0.01);
-                addControlPoint(863, 0.8696365386770794, 0.8696365386770794, 0.18167449520361578, 0.0);
-                addControlPoint(874, 0.3807735587161268, 0.3807735587161268, 0.862953852217175, 0.26);
-                addControlPoint(912, 0.5174615028706339, 0.5174615028706339, 0.8137577991669301, 0.0);
-                addControlPoint(929, 0.7353400303951113, 0.7353400303951113, 0.7353400303951113, 0.0);
-                addControlPoint(955, 0.805293416359993, 0.805293416359993, 0.805293416359993, 0.0);
-                addControlPoint(991, 0.8221972033641093, 0.8221972033641093, 0.8221972033641093, 0.0);
-                addControlPoint(1300, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(440, 0.0, 0.0, 0.0, 0.0);
+                addControlPoint(494, 0.0, 0.0, 1.0, 0.0148);
+                addControlPoint(519, 0.0, 0.0, 1.0, 0.0276);
+                addControlPoint(541, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(673, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(711, 0.8113207547169812, 0.5283018867924528, 0.6226415094339622, 0.1236);
+                addControlPoint(746, 0.6, 0.0, 0.2, 0.129);
+                addControlPoint(777, 0.6752941176470588, 0.18823529411764706, 0.35058823529411764, 0.3168);
+                addControlPoint(786, 0.7151702786377709, 0.28792569659442724, 0.43034055727554177, 0.0);
+                addControlPoint(812, 0.7928511117365606, 0.4821277793414016, 0.5857022234731213, 0.0092);
+                addControlPoint(846, 0.8806260643905603, 0.7015651609764009, 0.7612521287811207, 0.0092);
+                addControlPoint(871, 1.0, 1.0, 1.0, 0.0);
+                addControlPoint(922, 0.875, 0.875, 0.975, 0.0);
+                addControlPoint(1082, 0.8067408781694496, 0.8067408781694496, 0.96134817563389, 0.0);
+                addControlPoint(1167, 0.933172079367006, 0.933172079367006, 0.9866344158734012, 0.0342);
+                addControlPoint(1211, 0.8693467336683417, 0.8693467336683417, 0.8693467336683417, 0.056);
+                addControlPoint(1265, 0.9233122132401136, 0.9233122132401136, 0.9233122132401136, 0.0114);
+                addControlPoint(1300, 1.0, 1.0, 1.0, 0.0328);
                 break;
+                //caveties?: case "tooth.fld": addControlPoint(0, 0.0, 0.0, 0.0, 0.0); addControlPoint(440, 0.0, 0.0, 0.0, 0.0); addControlPoint(541, 1.0, 1.0, 1.0, 0.0); addControlPoint(906, 1.0, 0.6, 0.6, 0.01); addControlPoint(1117, 1.0, 0.8, 0.8, 0.024); addControlPoint(1142, 0.8, 0.8, 0.8, 0.04); addControlPoint(1155, 1.0, 1.0, 1.0, 0.4296); addControlPoint(1189, 1.0, 1.0, 1.0, 0.4346); addControlPoint(1199, 1.0, 1.0, 1.0, 0.0); addControlPoint(1208, 0.8, 0.8, 0.0, 0.8642); addControlPoint(1237, 0.6, 0.8, 0.0, 0.8642); addControlPoint(1300, 1.0, 1.0, 1.0, 0.0); break;
             case "pig8.fld":
                 addControlPoint(0, 0.5, 0.5, 0.5, 0.0);
                 addControlPoint(34, 0.5001183602265802, 0.5001183602265802, 0.5001183602265802, 0.0);
@@ -270,7 +276,7 @@ public class TransferFunction {
 
     }
 
-    public static final double SCALE_BASE = 4;
+    public static final double SCALE_BASE = 2;
     public static final double ALPHA_PRECISION = 5000;
     public static final String ALPHA_FORMAT = "%." + (int) Math.ceil(Math.log10(ALPHA_PRECISION)) + "f";
 
