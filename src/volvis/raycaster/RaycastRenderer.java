@@ -109,6 +109,8 @@ public class RaycastRenderer extends Renderer {
     public GradientVolume getGradients() {
         return gradients;
     }
+    
+    private final boolean DRAW_BOUNDING = false;
 
     /**
      * Do GL stuff
@@ -116,6 +118,9 @@ public class RaycastRenderer extends Renderer {
      * @param gl
      */
     private void drawBoundingBox(GL2 gl) {
+        if(!DRAW_BOUNDING){
+            return;
+        }
         gl.glPushAttrib(GL2.GL_CURRENT_BIT);
         gl.glDisable(GL2.GL_LIGHTING);
         gl.glColor4d(1.0, 1.0, 1.0, 1.0);
