@@ -200,7 +200,7 @@ public class Volume {
         
         result[0] = Double.NEGATIVE_INFINITY;
         result[1] = Double.POSITIVE_INFINITY;
-        final double EPSILON = 1./256/256/256;
+        final double EPSILON = 1./100000;
         
         if(Math.abs(dx) > EPSILON){
             double t0_x = - x / dx;
