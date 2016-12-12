@@ -100,7 +100,7 @@ public class Compositing extends RaycastRenderer.RendererClass {
                             distFactor = 1.0 / (r.options.phongK1 + r.options.phongK2 * distance);
                             //distFactor = 1;
 
-                            I = (r.phongKa + (r.phongKd * l_dot_n + r.phongKs * n_dot_h));
+                            I = (r.phongKa + distFactor * (r.phongKd * l_dot_n + r.phongKs * n_dot_h));
                         } else {
                             // skip
                             I = 1;
