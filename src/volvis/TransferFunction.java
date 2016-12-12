@@ -121,6 +121,25 @@ public class TransferFunction {
                 addControlPoint(991, 0.8221972033641093, 0.8221972033641093, 0.8221972033641093, 0.0);
                 addControlPoint(1300, 1.0, 1.0, 1.0, 0.0);
                 break;
+            case "pig8.fld":
+                addControlPoint(0, 0.5, 0.5, 0.5, 0.0);
+                addControlPoint(34, 0.5001183602265802, 0.5001183602265802, 0.5001183602265802, 0.0);
+                addControlPoint(36, 0.5750887701699352, 0.4250887701699351, 0.37508877016993514, 0.0236);
+                addControlPoint(38, 0.8, 0.2, 0.0, 0.4096);
+                addControlPoint(46, 0.0, 0.0, 0.0, 0.014);
+                addControlPoint(48, 0.4, 0.2, 0.0, 0.2556);
+                addControlPoint(53, 0.5025375236403082, 0.5025375236403082, 0.5025375236403082, 0.0);
+                addControlPoint(79, 0.5030013815480944, 0.5030013815480944, 0.5030013815480944, 0.0);
+                addControlPoint(85, 1.0, 1.0, 0.0, 0.1172);
+                addControlPoint(94, 0.503921568627451, 0.503921568627451, 0.503921568627451, 0.0);
+                addControlPoint(104, 0.5515450980392157, 0.47474509803921566, 0.5323450980392157, 0.1328);
+                addControlPoint(119, 0.6031372549019608, 0.44313725490196076, 0.5631372549019608, 0.0);
+                addControlPoint(121, 0.929698599439776, 0.2430700280112045, 0.758041456582633, 0.1114);
+                addControlPoint(134, 0.9841254901960784, 0.20972549019607845, 0.7905254901960784, 0.2064);
+                addControlPoint(152, 1.0, 0.2, 0.8, 0.1142);
+                addControlPoint(172, 0.6134516848077813, 0.6134516848077813, 0.5884516848077813, 0.0);
+                addControlPoint(255, 1.0, 1.0, 1.0, 0.0);
+                break;
             default:
                 System.out.println("No default transfer function known for " + filename);
                 break;
@@ -259,7 +278,7 @@ public class TransferFunction {
      * A point along a line with a color value associated with it
      */
     public class ControlPoint implements Comparable<ControlPoint> {
-        
+
         public int value;
         private TFColor color;
 
@@ -311,6 +330,8 @@ public class TransferFunction {
             this.filename = filename;
         }
 
+        final boolean LATEX = true;
+
         @Override
         public void changed() {
             System.out.print("case \"" + filename + "\": ");
@@ -318,6 +339,21 @@ public class TransferFunction {
                 System.out.print("addControlPoint(" + p.value + ", " + p.color.r + ", " + p.color.g + ", " + p.color.b + ", " + p.color.a + "); ");
             }
             System.out.println("\nbreak;");
+            if (LATEX) {
+                System.out.println("\n\n\\begin{table}\n"
+                        + "\\centering "
+                        + "\\begin{tabular}{|r|rrrr|} "
+                        + "\\hline \n"
+                        + "\\multicolumn{1}{|c|}{Value} & \\multicolumn{1}{c}{Red} & \\multicolumn{1}{c}{Green} & \\multicolumn{1}{c}{Blue} & \\multicolumn{1}{c|}{$\\alpha$} \\\\ \\hline");
+                for (ControlPoint p : controlPoints) {
+                    System.out.printf("$%d$ & $%.2f$ & $%.2f$ & $%.2f$ & $%.2f$ \\\\ \\hline\n",
+                            p.value, p.color.r, p.color.g, p.color.b, p.color.a);
+                }
+                System.out.printf("\\end{tabular}"
+                        + "\\caption{Transfer function " + filename + "}"
+                        + "\\label{tab:tf-" + filename + "}"
+                        + "\\end{table}\n");
+            }
         }
 
     }
