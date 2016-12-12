@@ -170,6 +170,10 @@ public class VolVisApplication extends javax.swing.JFrame {
     }//GEN-LAST:event_loadButtonActionPerformed
 
     public void loadFile(File file){
+        if(!file.exists()){
+            System.out.println("Could not read file "+file);
+            return;
+        }
         volume = new Volume(file);
 
         String infoText = new String("Volume data info:\n");
