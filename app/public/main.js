@@ -5,65 +5,65 @@
  * geojson2topojson: http://geojson.io
  */
 console.log("d3 loaded: "+d3.version);
+var us = false;
 
-var width = $(window).width(),
+var width = 500,
     height = $(window).height() - 100,
     active = d3.select(null);
 
-var projection = d3.geoMercator()
-    .scale((1 << 22) / 2 / Math.PI)
+var projection = us ? d3.geoAlbersUsa() : d3.geoMercator();
+projection.scale(1000)
     .translate([width / 2, height / 2]);
 var path = d3.geoPath()
     .projection(projection);
 
 var zoom = d3.zoom()
-    .scaleExtent([0.01, 800])
+    .scaleExtent([1, 8])
     .on("zoom", zoomed);
 
 var svg = d3.select("svg")
     .attr("width", width)
     .attr("height", height)
-    .on('click', stopped, true);
+    .on('click', stopped);
 svg.append('rect')
     .attr('class', 'background')
     .attr("width", width)
     .attr("height", height)
-    .on('click', reset)
-    .call(zoom); // delete this line to disable free zooming
+    .on('click', reset);
+//svg.call(zoom);
 var g = svg.append("g");
 
-d3.json("/buurten.topojson", function (error, buurten) {
+
+var data_url = us ? '/us.json' : "/buurten.topojson";
+d3.json(data_url, function (error, topo) {
     if (error) throw error;
 
-    var plane = topojson.feature(buurten, buurten.objects.collection);
+    var data_key = us ? 'states' : 'collection';
+
+    var plane = topojson.feature(topo, topo.objects[data_key]);
+    var mesh = topojson.mesh(topo, topo.objects[data_key], function (a, b) {
+        return a !== b;
+    });
 
     var b, s, t; // boxing limits
     projection.scale(1).translate([0, 0]);
     b = path.bounds(plane);
-    s = .5 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
+    s = .8 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
     t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
     projection.scale(s).translate(t);
 
     g.selectAll('path')
-    //.data(topojson.feature(us, us.objects.states).features)
         .data(plane.features)
         .enter()
         .append('path')
-        .attr("class", "wijk")
+        .attr("class", "feature")
         .attr("d", path)
         .on("click", clicked);
 
-
-    // var b = path.bounds(pane);
-    // console.log(b);
-    // var s = .9 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
-    // var t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
-    // projection.scale(s).translate(t);
-
-    // g.append("path")
-    //     .datum(topojson.mesh(buurten, buurten.objects.collection, function(a, b) { return a !== b; }))
-    //     .attr("class", "mesh")
-    //     .attr("d", path);
+    g.append("path")
+        .datum(mesh)
+        .attr("class", "mesh")
+        .attr("d", path);
 });
 
 function clicked(d) {
@@ -90,14 +90,12 @@ function reset() {
 
     svg.transition()
         .duration(750)
-        // .call( zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1) ); // not in d3 v4
         .call( zoom.transform, d3.zoomIdentity ); // updated for d3 v4
 }
 
 function zoomed() {
     g.style("stroke-width", 1.5 / d3.event.transform.k + "px");
-    // g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")"); // not in d3 v4
-    g.attr("transform", d3.event.transform); // updated for d3 v4
+    g.attr("transform", d3.event.transform);
 }
 
 // If the drag behavior prevents the default click,
@@ -105,4 +103,3 @@ function zoomed() {
 function stopped() {
     if (d3.event.defaultPrevented) d3.event.stopPropagation();
 }
-
