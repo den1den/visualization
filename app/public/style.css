@@ -1,0 +1,10 @@
+.wijk {
+    fill: orange;
+    stroke: black;
+}
+.wijk:hover {
+    fill: #ffca68;
+}
+.background{
+    fill: white;
+}
