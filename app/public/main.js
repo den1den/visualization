@@ -4,48 +4,51 @@
  * examples: http://bl.ocks.org/mbostock  http://techslides.com/over-1000-d3-js-examples-and-demos
  * geojson2topojson: http://geojson.io
  */
-console.log("d3 loaded: "+d3.version);
-var us = false;
+console.log("d3 loaded: " + d3.version);
 
+var us = false; // for debugging: use the US map instead of Den Haag
 var width = 500,
-    height = $(window).height() - 100,
+    height = 500,//$(window).height()
     active = d3.select(null);
 
+// Setup projection for geo data
 var projection = us ? d3.geoAlbersUsa() : d3.geoMercator();
-projection.scale(1000)
-    .translate([width / 2, height / 2]);
-var path = d3.geoPath()
-    .projection(projection);
+projection.scale(1000).translate([width / 2, height / 2]);
+var path = d3.geoPath().projection(projection);
 
-var zoom = d3.zoom()
-    .scaleExtent([1, 8])
-    .on("zoom", zoomed);
-
+// Setup root element
 var svg = d3.select("svg")
     .attr("width", width)
     .attr("height", height)
     .on('click', stopped);
+// Add background
 svg.append('rect')
     .attr('class', 'background')
     .attr("width", width)
     .attr("height", height)
     .on('click', reset);
-//svg.call(zoom);
 var g = svg.append("g");
 
+// Add zooming functionality
+var zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .on("zoom", zoomed);
+//svg.call(zoom);
 
 var data_url = us ? '/us.json' : "/buurten.topojson";
-d3.json(data_url, function (error, topo) {
-    if (error) throw error;
+jsonLoad(data_url, function (topo) {
+    var data;
+    if(!us){
+        data = topo.objects['buurten'];
+    } else {
+        data = topo.objects['states']
+    }
 
-    var data_key = us ? 'states' : 'collection';
+    // Add the areas
+    var plane = topojson.feature(topo, data);
 
-    var plane = topojson.feature(topo, topo.objects[data_key]);
-    var mesh = topojson.mesh(topo, topo.objects[data_key], function (a, b) {
-        return a !== b;
-    });
-
-    var b, s, t; // boxing limits
+    // calculate the zoom by a bounding box
+    var b, s, t;
     projection.scale(1).translate([0, 0]);
     b = path.bounds(plane);
     s = .8 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
@@ -60,16 +63,26 @@ d3.json(data_url, function (error, topo) {
         .attr("d", path)
         .on("click", clicked);
 
+    // Add a mesh for extra clear lines between areas
+    var mesh = topojson.mesh(topo, data, function (a, b) {
+        return a !== b;
+    });
     g.append("path")
         .datum(mesh)
         .attr("class", "mesh")
         .attr("d", path);
+
 });
 
+
+// On click on a area
 function clicked(d) {
     if (active.node() === this) return reset();
     active.classed("active", false);
     active = d3.select(this).classed("active", true);
+
+    console.log("Clicked on d");
+    console.log(d);
 
     var bounds = path.bounds(d),
         dx = bounds[1][0] - bounds[0][0],
@@ -81,18 +94,20 @@ function clicked(d) {
 
     svg.transition()
         .duration(750)
-        .call( zoom.transform, d3.zoomIdentity.translate(translate[0],translate[1]).scale(scale) ); // updated for d3 v4
+        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)); // updated for d3 v4
 }
 
+// On click outside an area
 function reset() {
     active.classed("active", false);
     active = d3.select(null);
 
     svg.transition()
         .duration(750)
-        .call( zoom.transform, d3.zoomIdentity ); // updated for d3 v4
+        .call(zoom.transform, d3.zoomIdentity); // updated for d3 v4
 }
 
+// On zoom update
 function zoomed() {
     g.style("stroke-width", 1.5 / d3.event.transform.k + "px");
     g.attr("transform", d3.event.transform);
