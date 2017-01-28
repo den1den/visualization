@@ -12,17 +12,29 @@
     fill: orange;
 }
 
-#geo .mesh {
-    fill: none;
+#stadsdelen, #wijken, #buurten {
+    fill: #cde;
     stroke: #fff;
-    stroke-linecap: round;
     stroke-linejoin: round;
+    stroke-linecap: round;
+    cursor: pointer;
 }
-
-#geo {
+#stadsdelen .active, #wijken .active, #buurten .active {
+    fill: #89a;
+}
+#stadsdelen {
+    cursor: pointer;
+}
+.stadsdeel {
+    fill: #345;
+    stroke: #fff;
 }
 
 #list {
     max-height: 500px;
     overflow-y: scroll;
+}
+
+.list-group-flush .list-group-item {
+    border: none;
 }

@@ -13,6 +13,9 @@ input_data_folder = os.path.join(os.path.dirname(__file__), 'data-raw')
 # output
 output_data_folder = os.path.join(os.path.dirname(__file__), 'data-processed')
 
+geo2topo_command = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'node_modules', 'topojson', 'node_modules', '.bin', 'geo2topo.cmd'))
+
 def processGeoJson(filename, process_properties):
     raw = json.load(open(os.path.join(input_data_folder, filename)))
     features = []
@@ -28,8 +31,11 @@ def processGeoJson(filename, process_properties):
     }
     output_json_filename = os.path.join(output_data_folder, filename)
     json.dump(processed, open(output_json_filename, mode='w+'), indent=1)
-    topojson_command = os.path.abspath(os.path.join(os.path.dirname(__file__), 'node_modules', 'topojson', 'node_modules', '.bin', 'geo2topo.cmd'))
-    subprocess.run([topojson_command, '-o', output_json_filename[:-7] + 'topojson', output_json_filename])
+    geojson_to_topojson(output_json_filename)
+
+
+def geojson_to_topojson(geojson_filename):
+    subprocess.run([geo2topo_command, '-o', geojson_filename[:-7] + 'topojson', geojson_filename])
 
 
 # Buurten
@@ -71,7 +77,7 @@ def process_buurt_codes(properties):
     wijkcode = int(properties['WIJKCODE'])
     buurtcodes[buurtnaam] = buurtcode
     buurt_in_wijk[buurtcode] = wijkcode
-    return {}
+    return None
 
 
 def process_buurt_features(properties):
@@ -222,6 +228,19 @@ def process_csvs():
         print("Wijk missing in data file: %s" % not_linked)
 
 
+def combine_geojsons(filename):
+
+    output_geojson_filename = os.path.abspath(os.path.join(output_data_folder, filename[:-7] + 'topojson'))
+    subprocess.run([geo2topo_command,
+                    'stadsdeel='+os.path.join(output_data_folder, 'stadsdeel.geojson'),
+                    'wijken='+os.path.join(output_data_folder, 'wijken.geojson'),
+                    'buurten='+os.path.join(output_data_folder, 'buurten.geojson'),
+                    '>',
+                    output_geojson_filename
+    ])
+    print('combined file written to %s' % output_geojson_filename)
+
+
 # Execute
 if __name__ == '__main__':
     if not os.path.exists(output_data_folder):
@@ -232,3 +251,5 @@ if __name__ == '__main__':
     process_csvs()
 
     process_buurten2()
+
+    combine_geojsons('combined.geojson')
