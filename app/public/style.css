@@ -12,9 +12,17 @@
     fill: orange;
 }
 
-.mesh {
+#geo .mesh {
     fill: none;
     stroke: #fff;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+#geo {
+}
+
+#list {
+    max-height: 500px;
+    overflow-y: scroll;
 }

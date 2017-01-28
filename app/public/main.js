@@ -17,7 +17,7 @@ projection.scale(1000).translate([width / 2, height / 2]);
 var path = d3.geoPath().projection(projection);
 
 // Setup root element
-var svg = d3.select("svg")
+var svg = d3.select("#geo")
     .attr("width", width)
     .attr("height", height)
     .on('click', stopped);
@@ -72,6 +72,15 @@ jsonLoad(data_url, function (topo) {
         .attr("class", "mesh")
         .attr("d", path);
 
+    // Setup the list
+    data.geometries.forEach(function (d){
+        var list = d3.select("#list");
+        list.append('li')
+            .attr('class', 'list-group-item')
+            .append('span')
+            .attr('class', 'tag tag-default tag-pill float-xs-right')
+            .text("Hallo");
+    });
 });
 
 
@@ -80,6 +89,9 @@ function clicked(d) {
     if (active.node() === this) return reset();
     active.classed("active", false);
     active = d3.select(this).classed("active", true);
+
+    d3.select('#woonwijk-field').text(d.properties.buurtnaam);
+    d3.select('#data-field').text(JSON.stringify(d.properties.data));
 
     console.log("Clicked on d");
     console.log(d);
