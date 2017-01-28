@@ -1,35 +1,46 @@
-.background {
-    fill: none;
-    pointer-events: all;
-}
-
-.feature {
-    fill: #ccc;
-    cursor: pointer;
-}
-
-.feature.active {
-    fill: orange;
-}
-
-#stadsdelen, #wijken, #buurten {
-    fill: #cde;
-    stroke: #fff;
+/***************************************/
+#geo {
+    border: none;
     stroke-linejoin: round;
     stroke-linecap: round;
     cursor: pointer;
-}
-#stadsdelen .active, #wijken .active, #buurten .active {
-    fill: #89a;
-}
-#stadsdelen {
-    cursor: pointer;
-}
-.stadsdeel {
-    fill: #345;
-    stroke: #fff;
+    z-index: 10;
 }
 
+#geo .background {
+    fill: #eee;
+    pointer-events: all;
+}
+
+#level0-area{
+    fill: #3182bd;
+}
+#level0-border{
+    stroke: #111;
+}
+#level1-area{
+    fill: #9ecae1;
+}
+#level1-border{
+    stroke: #222;
+}
+#level2-area{
+    fill: #deebf7;
+}
+#level2-border{
+    stroke: #333;
+    stroke-width: 1.5px;
+}
+
+.mesh {
+    fill: none;
+}
+
+#geo-container{
+    background-color: aliceblue;
+}
+
+/***************************************/
 #list {
     max-height: 500px;
     overflow-y: scroll;

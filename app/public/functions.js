@@ -2,11 +2,20 @@
  * Created by Dennis on 27-1-2017.
  */
 
+var TOPOJSONDATA = {};
+
+function getMesh(index) {
+    return topojson.mesh(TOPOJSONDATA, TOPOJSONDATA.objects[objectKey[index]], neq);
+}
+function getFeature(index) {
+    return topojson.feature(TOPOJSONDATA, TOPOJSONDATA.objects[objectKey[index]]);
+}
+
 function loadDatas(callback) {
     d3.queue()
         .defer(d3.json, '/stadsdeel.topojson')
         .defer(d3.json, '/wijken.topojson')
-        .defer(d3.json, '/buurten.topojson')
+        .defer(d3.json, '/buurten-simple.topojson')
         .awaitAll(function (error, datas) {
             if (error) throw error;
             console.log("Data loaded");
@@ -17,7 +26,8 @@ function loadData(callback) {
     d3.json('combined.topojson', function (error, data) {
         if (error) throw error;
         console.log("Loaded combined.topojson");
-        callback(data);
+        TOPOJSONDATA = data;
+        callback();
     });
 }
 

@@ -9,8 +9,8 @@ console.log("d3 loaded: " + d3.version);
 var index = 0;
 var active = d3.select(null);
 
-loadData(function (data) {
-    geoSetup(data);
+loadData(function () {
+    geoSetup();
 });
 
 function updateSelected(i){
