@@ -5,110 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Visualization</title>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-6">
-                <h1>#geo</h1>
-                <div id="geo-container">
-                    <svg id="geo"></svg>
-                </div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>#geo</h1>
+            <div id="geo-container">
+                <svg id="geo"></svg>
             </div>
+        </div>
 
-            <div class="col-md-6">
-                <h2>
-                    Den Haag
-                </h2>
+        <div class="col-md-6">
+            <h2>
+                Den Haag
+            </h2>
 
-                <div class="card text-xs-center">
-                    <div class="card-header">
-                        <ul class="nav nav-pills card-header-pills float-xs-left">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#" id="list-tab-stadsdeel">Stadsdeel</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="list-tab-wijk">Wijk</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="list-tab-buurt">Buurt</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <ul class="list-group list-group-flush" id="list-stadsdeel">
-                        <!-- is filled with data -->
-                    </ul>
-                    <ul class="list-group list-group-flush" id="list-wijk">
-                        <!-- is filled with data -->
-                    </ul>
-                    <ul class="list-group list-group-flush" id="list-stadsdeel">
-                        <!-- is filled with data -->
+            <div class="card text-xs-center">
+                <div class="card-header">
+                    <ul class="nav nav-pills card-header-pills float-xs-left">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" id="list-tab-stadsdeel">Stadsdeel</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="list-tab-wijk">Wijk</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="list-tab-buurt">Buurt</a>
+                        </li>
                     </ul>
                 </div>
+                <ul class="list-group list-group-flush select-list" id="list-stadsdeel">
+                    <!-- is filled with data -->
+                </ul>
+                <ul class="list-group list-group-flush select-list" id="list-wijk">
+                    <!-- is filled with data -->
+                </ul>
+                <ul class="list-group list-group-flush select-list" id="list-buurt">
+                    <!-- is filled with data -->
+                </ul>
             </div>
         </div>
-
-        <!-- SLIDER -->
-        <div>
-            <ul class="pagination pagination-lg" id="slider">
-                <li class="page-item"><a class="page-link" href="#">2011</a></li>
-                <li class="page-item"><a class="page-link" href="#">2012</a></li>
-                <li class="page-item"><a class="page-link" href="#">2013</a></li>
-                <li class="page-item"><a class="page-link" href="#">2014</a></li>
-                <li class="page-item"><a class="page-link" href="#">2015</a></li>
-            </ul>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-
-            </div>
-
-            <div class="col-md-6">
-
-            </div>
-        </div>
-
-        <!--<div class="row">-->
-
-            <!--<div class="col-md-6">-->
-                <!--<div class="card">-->
-                    <!--<svg id="geo"></svg>-->
-                <!--</div>-->
-            <!--</div>-->
-
-            <!--<div class="col-md-6">-->
-            <!--</div>-->
-        <!--</div>-->
-
-        <div class="row">
-            <table class="table table-responsive">
-                <thead>
-                <tr>
-                    <th>Woonwijk</th>
-                    <th>Data</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td scope="row" id="select-name">Geen geselecteerd</td>
-                    <td id="select-data">Geen data</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
     </div>
-    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-    <script src="https://d3js.org/d3.v4.js"></script>
-    <script src="https://d3js.org/topojson.v2.min.js"></script>
-    <script src="functions.js"></script>
-    <script src="slider.js"></script>
-    <script src="geo.js"></script>
-    <script src="main.js"></script>
+
+    <!-- SLIDER -->
+    <div>
+        <ul class="pagination pagination-lg" id="slider">
+            <li class="page-item"><a class="page-link" href="#">2011</a></li>
+            <li class="page-item"><a class="page-link" href="#">2012</a></li>
+            <li class="page-item"><a class="page-link" href="#">2013</a></li>
+            <li class="page-item"><a class="page-link" href="#">2014</a></li>
+            <li class="page-item"><a class="page-link" href="#">2015</a></li>
+        </ul>
+    </div>
+
+    <!-- selection -->
+    <div class="row">
+        <table class="table table-responsive">
+            <thead>
+            <tr>
+                <th>Woonwijk</th>
+                <th>Data</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td scope="row" id="select-name">Geen geselecteerd</td>
+                <td id="select-data">Geen data</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- graph -->
+    <div class="row">
+        <div class="col-md-8">
+            <svg id="chart"></svg>
+        </div>
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card card-block">
+                        <h3 class="card-title">X-axis</h3>
+                        <p class="card-text">Text</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-block">
+                        <h3 class="card-title">Y-axis</h3>
+                        <p class="card-text">Text</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- container -->
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+        integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+        integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+        integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+        crossorigin="anonymous"></script>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script src="functions.js"></script>
+<script src="chart.js"></script>
+<script src="slider.js"></script>
+<script src="geo.js"></script>
+<script src="main.js"></script>
 </body>
 </html>

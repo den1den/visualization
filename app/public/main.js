@@ -6,16 +6,13 @@
  */
 console.log("d3 loaded: " + d3.version);
 
-var index = 0;
-var active = d3.select(null);
+var x = new CollumSelector(),
+    y = new CollumSelector(),
+    chart = new Chart(x, y),
+    list = new ListSelector(),
+    map = new GeoMap(list),
+    data = new TopoJsonData();
 
-loadData(function () {
-    geoSetup();
+data.get(function () {
+    map.setData(data);
 });
-
-function updateSelected(i){
-    var old_index = index;
-    index = i;
-
-    geoChange(old_index);
-}

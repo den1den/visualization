@@ -2,13 +2,25 @@
  * Created by Dennis on 27-1-2017.
  */
 
-var TOPOJSONDATA = {};
+var objectKey = ['stadsdeel', 'wijken', 'buurten'];
+var propertyNaam = ['stadsdeelnaam', 'wijknaam', 'buurtnaam'];
 
-function getMesh(index) {
-    return topojson.mesh(TOPOJSONDATA, TOPOJSONDATA.objects[objectKey[index]], neq);
-}
-function getFeature(index) {
-    return topojson.feature(TOPOJSONDATA, TOPOJSONDATA.objects[objectKey[index]]);
+function TopoJsonData(){
+    var data = null;
+    this.get = function (callback) {
+        d3.json('combined.topojson', function (error, _data) {
+            if (error) throw error;
+            console.log("Loaded combined.topojson");
+            data = _data;
+            callback();
+        });
+    };
+    this.getMesh = function(index) {
+        return topojson.mesh(data, data.objects[objectKey[index]], neq);
+    };
+    this.getFeature = function(index) {
+        return topojson.feature(data, data.objects[objectKey[index]]);
+    };
 }
 
 function loadDatas(callback) {
@@ -22,15 +34,6 @@ function loadDatas(callback) {
             callback(datas);
         });
 }
-function loadData(callback) {
-    d3.json('combined.topojson', function (error, data) {
-        if (error) throw error;
-        console.log("Loaded combined.topojson");
-        TOPOJSONDATA = data;
-        callback();
-    });
-}
-
 function loadCsv(callback) {
     d3.request('/buurten.topojson')
         .mimeType("text/csv")
@@ -59,8 +62,6 @@ function loadCsv(callback) {
         });
 }
 
-var objectKey = ['stadsdeel', 'wijken', 'buurten'];
-var propertyNaam = ['stadsdeelnaam', 'wijknaam', 'buurtnaam'];
 
 function sortByProperty(key) {
     return function(a, b)

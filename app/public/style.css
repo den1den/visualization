@@ -12,28 +12,38 @@
     pointer-events: all;
 }
 
-#level0-area{
-    fill: #3182bd;
-}
 #level0-border{
     stroke: #111;
-}
-#level1-area{
-    fill: #9ecae1;
 }
 #level1-border{
     stroke: #222;
 }
-#level2-area{
-    fill: #deebf7;
-}
 #level2-border{
-    stroke: #333;
-    stroke-width: 1.5px;
+    stroke: none;
 }
 
+/* #3182bd #9ecae1 #deebf7 */
+
+#level0-area{
+}
+#level1-area{
+}
+#level2-area{
+}
+#selected-area{
+    fill: none;
+    stroke: #222;
+    stroke-width: 2px;
+}
+.area {
+    fill: #3182bd;
+    stroke-width: 1px;
+    stroke: #333;
+}
 .mesh {
     fill: none;
+    stroke-width: 1px;
+    stroke: red;
 }
 
 #geo-container{
@@ -41,9 +51,9 @@
 }
 
 /***************************************/
-#list {
+.select-list {
     max-height: 500px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .list-group-flush .list-group-item {
