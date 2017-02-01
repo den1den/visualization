@@ -1,14 +1,29 @@
+a {
+    color: #d94701;
+}
+a:focus {
+    color: #693101;
+}
+a:hover {
+    color: #fd8d3c;
+}
+.nav-pills .nav-item.show .nav-link, .nav-pills .nav-link.active {
+    background-color: #fd8d3c;
+}
+.card-header {
+    background-color: white;
+}
 /***************************************/
 #geo {
-    border: none;
     stroke-linejoin: round;
     stroke-linecap: round;
     cursor: pointer;
-    z-index: 10;
+    height: 500px;
+    width: 100%;
 }
 
 #geo .background {
-    fill: #eee;
+    fill: white;
     pointer-events: all;
 }
 
@@ -32,30 +47,55 @@
 }
 #selected-area{
     fill: none;
-    stroke: #222;
+    stroke: #111;
     stroke-width: 2px;
 }
 .area {
-    fill: #3182bd;
+    fill: #fdbe85;
     stroke-width: 1px;
-    stroke: #333;
+    stroke: #e6550d;
 }
 .mesh {
     fill: none;
     stroke-width: 1px;
-    stroke: red;
 }
 
 #geo-container{
-    background-color: aliceblue;
+    background-color: white;
 }
 
 /***************************************/
 .select-list {
-    max-height: 500px;
+    max-height: 433px;
     overflow-y: auto;
 }
 
 .list-group-flush .list-group-item {
     border: none;
+}
+/***************************************/
+#chart {
+    width: 100%;
+}
+#chart .background {
+    fill: #FCF4ED;
+}
+#chart .line {
+    stroke: black;
+    stroke-width: 1px;
+    fill: none;
+}
+.table-years th{
+    text-align: center;
+}
+
+#selected-title-container{
+    color: black;
+    font-weight: bold;
+    margin-top: 1em;
+    border-left-color: #fdbe85;
+    border-left-color: #fdbe85;
+ }
+#selected-title {
+    margin-left: 0.25em;
 }

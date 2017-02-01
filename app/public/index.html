@@ -11,30 +11,29 @@
 </head>
 <body>
 <div class="container-fluid">
+    <!--<div>-->
+        <!--<h1>Den Haag</h1>-->
+    <!--</div>-->
+    <div style="height: 10px;"></div>
     <div class="row">
         <div class="col-md-6">
-            <h1>#geo</h1>
             <div id="geo-container">
                 <svg id="geo"></svg>
             </div>
         </div>
 
         <div class="col-md-6">
-            <h2>
-                Den Haag
-            </h2>
-
             <div class="card text-xs-center">
                 <div class="card-header">
                     <ul class="nav nav-pills card-header-pills float-xs-left">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#" id="list-tab-stadsdeel">Stadsdeel</a>
+                            <a class="nav-link active" href="#" id="list-tab-stadsdeel">City part</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" id="list-tab-wijk">Wijk</a>
+                            <a class="nav-link" href="#" id="list-tab-wijk">District</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" id="list-tab-buurt">Buurt</a>
+                            <a class="nav-link" href="#" id="list-tab-buurt">Neighborhood</a>
                         </li>
                     </ul>
                 </div>
@@ -53,50 +52,65 @@
 
     <!-- SLIDER -->
     <div>
-        <ul class="pagination pagination-lg" id="slider">
-            <li class="page-item"><a class="page-link" href="#">2011</a></li>
-            <li class="page-item"><a class="page-link" href="#">2012</a></li>
-            <li class="page-item"><a class="page-link" href="#">2013</a></li>
-            <li class="page-item"><a class="page-link" href="#">2014</a></li>
-            <li class="page-item"><a class="page-link" href="#">2015</a></li>
-        </ul>
+
     </div>
 
     <!-- selection -->
-    <div class="row">
-        <table class="table table-responsive">
-            <thead>
-            <tr>
-                <th>Woonwijk</th>
-                <th>Data</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td scope="row" id="select-name">Geen geselecteerd</td>
-                <td id="select-data">Geen data</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+    <!--<div class="row">-->
+        <!--<table class="table table-responsive">-->
+            <!--<thead>-->
+            <!--<tr>-->
+                <!--<th>Woonwijk</th>-->
+                <!--<th>Data</th>-->
+            <!--</tr>-->
+            <!--</thead>-->
+            <!--<tbody>-->
+            <!--<tr>-->
+                <!--<td scope="row" id="select-name">Geen geselecteerd</td>-->
+                <!--<td id="select-data">Geen data</td>-->
+            <!--</tr>-->
+            <!--</tbody>-->
+        <!--</table>-->
+    <!--</div>-->
 
     <!-- graph -->
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <svg id="chart"></svg>
+
+            <div id="chart-legend">
+                <table class="table table-years">
+                    <thead>
+                    <tr>
+                        <th>2011</th>
+                        <th>2012</th>
+                        <th>2013</th>
+                        <th>2014</th>
+                        <th>2015</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
+            <div>
+                <blockquote class="blockquote" id="selected-title-container">
+                    <h3 class="mb-0"><small>Selected:</small>  <span id="selected-title"></span></h3>
+                </blockquote>
+            </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="card card-block">
-                        <h3 class="card-title">X-axis</h3>
-                        <p class="card-text">Text</p>
+                        <h4 class="card-title" id="title-x"></h4>
+                        <h6 class="card-title">X-axis</h6>
+                        <p class="card-text" id="select-x"></p>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card card-block">
-                        <h3 class="card-title">Y-axis</h3>
-                        <p class="card-text">Text</p>
+                        <h4 class="card-title" id="title-y"></h4>
+                        <h6 class="card-title">Y-axis</h6>
+                        <p class="card-text" id="select-y"></p>
                     </div>
                 </div>
             </div>
@@ -114,7 +128,8 @@
         crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src="https://d3js.org/topojson.v2.min.js"></script>
-<script src="functions.js"></script>
+<script src="util.js"></script>
+<script src="data.js"></script>
 <script src="chart.js"></script>
 <script src="slider.js"></script>
 <script src="geo.js"></script>

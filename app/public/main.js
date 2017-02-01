@@ -6,8 +6,8 @@
  */
 console.log("d3 loaded: " + d3.version);
 
-var x = new CollumSelector(),
-    y = new CollumSelector(),
+var x = new DataAxis('#select-x', '#title-x', {'owner': 'all', 'source': 'total', 'agg': 'count'}),
+    y = new DataAxis('#select-y', '#title-y', {'owner': 'all', 'source': 'co2', 'agg': 'avg'}),
     chart = new Chart(x, y),
     list = new ListSelector(),
     map = new GeoMap(list),

@@ -3,16 +3,18 @@
  */
 
 function GeoMap(list) {
-    var width = 500,
-        height = 500;
+    var svg = d3.select("#geo");
+
+    var $svg = $('#geo');
+    var width = $svg.width(),
+        height = $svg.height();
 
     var projection = d3.geoMercator();
     projection.scale(1000).translate([width / 2, height / 2]);
     var path = d3.geoPath().projection(projection);
 
     // Setup root element
-    var svg = d3.select("#geo")
-        .attr("width", width)
+    svg.attr("width", width)
         .attr("height", height)
         .on('click', stopped);
     // Add background
@@ -39,13 +41,16 @@ function GeoMap(list) {
         .scaleExtent([1, 8])
         .on("zoom", onZoom);
 
-    svg.call(zoom);
+    // ZOOM OPTION:
+    // FIXME: this does not work :(
+    // svg.call(zoom);
 
     var selected = root.append("g").attr("id", "selected-area");
 
     this.setData = function (data) {
         //init
         initZoom(data.getMesh(2));
+        setSelect(null, -1);
 
         function append(index) {
             var features = data.getFeature(index).features,
@@ -73,7 +78,7 @@ function GeoMap(list) {
             b = path.bounds(hasBounds),
             dx = b[1][0] - b[0][0],
             dy = b[1][1] - b[0][1];
-        s = 0.9 / Math.max(dx / width, dy / height);
+        s = 0.83 / Math.max(dx / width, dy / height);
         t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
         projection.scale(s).translate(t);
     }
@@ -103,7 +108,7 @@ function GeoMap(list) {
 
     function getOnClickedFn(index) {
         return function (d) {
-            setSelect(d);
+            setSelect(d, index);
 
             if (index < 2) {
                 // meshes[index-1].style("display", "none");
@@ -126,24 +131,28 @@ function GeoMap(list) {
             root.transition()
                 .duration(750)
                 .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
-
-            chart.setChartData(d);
         };
     }
 
-    function setSelect(el) {
-        console.log("Select:");
-        console.log(el);
-
+    function setSelect(el, index) {
+        var selectedText;
         selected.selectAll("path").remove();
-        if (el !== null) {
-            selected.selectAll("path")
-                .data([el]).enter()
-                .append('path')
-                .attr("d", path);
-            // d3.select('#select-name').text(d.properties[propertyNaam[index]]);
-            // d3.select('#select-data').text(JSON.stringify(d.properties));
+        if (index === -1) {
+            el = data.withAggregate(null, index);
+            selectedText = "Den Haag (city)";
+        } else if (el === null) {
+            selectedText = "None";
+        } else {
+            el = data.withAggregate(el, index);
+            selectedText = el.properties[propertyKey[index]] + " ("+typeName[index].toLowerCase()+")";
         }
+        selected.selectAll("path")
+            .data([el]).enter()
+            .append('path')
+            .attr("d", path);
+        d3.select('#selected-title').text(selectedText);
+
+        chart.setChartData(el);
     }
 }
 
@@ -172,6 +181,7 @@ function ListSelector() {
             listButtons[i].attr("class", "nav-link" + (i === index ? " active" : ""));
         }
     }
+
     this.setList = setList;
 
     function getOnClickFn(d) {
@@ -181,12 +191,12 @@ function ListSelector() {
     }
 
     this.fillList = function (features, index) {
-        features.sort(sortByProperty(propertyNaam[index])).forEach(function (d) {
+        features.sort(sortByProperty(propertyKey[index])).forEach(function (d) {
             lists[index].append('li')
                 .attr('class', 'list-group-item')
                 .append('span')
                 .attr('class', 'tag tag-default tag-pill float-xs-right')
-                .text(d.properties[propertyNaam[index]])
+                .text(d.properties[propertyKey[index]])
                 .on('click', getOnClickFn(d));
         });
     }

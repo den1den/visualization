@@ -99,7 +99,7 @@ def process_buurten():
     processGeoJson('buurten.geojson', process_buurt_codes)
 
 
-def process_buurten2():
+def write_buurten():
     processGeoJson('buurten.geojson', process_buurt_features)
 
 
@@ -230,7 +230,7 @@ def process_csvs():
 
 def combine_geojsons(filename):
 
-    output_geojson_filename = os.path.abspath(os.path.join(output_data_folder, filename[:-7] + 'topojson'))
+    output_geojson_filename = os.path.abspath(os.path.join(output_data_folder, filename))
     subprocess.run([geo2topo_command,
                     'stadsdeel='+os.path.join(output_data_folder, 'stadsdeel.geojson'),
                     'wijken='+os.path.join(output_data_folder, 'wijken.geojson'),
@@ -248,8 +248,9 @@ if __name__ == '__main__':
     process_stadsdelen()
     process_wijken()
     process_buurten()
+
     process_csvs()
 
-    process_buurten2()
+    write_buurten()
 
-    combine_geojsons('combined.geojson')
+    combine_geojsons('combined.topojson')
