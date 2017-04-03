@@ -22,7 +22,7 @@ function GeoMap() {
         .attr('class', 'background')
         .attr("width", width)
         .attr("height", height)
-        .on('click', resetZoom);
+        .on('click', function () { data.fireSelectChange('geo', null, -1); });
     var root = svg.append("g");
 
     var areas = [
@@ -50,7 +50,6 @@ function GeoMap() {
     this.bindData = function (data) {
         //init
         initZoom(data.getMesh(2));
-        setSelect(null, -1);
         function append(index) {
             var features = data.getFeature(index).features,
                 mesh = data.getMesh(index),
@@ -66,6 +65,49 @@ function GeoMap() {
         append.call(this, 0);
         append.call(this, 1);
         append.call(this, 2);
+
+        data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
+            if (newSelectedLevel < 2) {
+                // meshes[index-1].style("display", "none");
+                // meshes[index].style("display", "inherit");
+
+                if(newSelectedLevel >= 0)
+                    areas[newSelectedLevel].style("display", "none");
+                areas[newSelectedLevel + 1].style("display", "inherit");
+            }
+
+            // Zoom te specific area
+            if(newSelected == null){
+                resetZoom();
+            } else {
+                var bounds = path.bounds(newSelected),
+                    dx = bounds[1][0] - bounds[0][0],
+                    dy = bounds[1][1] - bounds[0][1],
+                    x = (bounds[0][0] + bounds[1][0]) / 2,
+                    y = (bounds[0][1] + bounds[1][1]) / 2,
+                    scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+                    translate = [width / 2 - scale * x, height / 2 - scale * y];
+                root.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+            }
+
+            // Set selected Text
+            var selectedText;
+            selected.selectAll("path").remove();
+            if (newSelectedLevel === -1) {
+                selectedText = "Den Haag (city)";
+            } else if (newSelected === null) {
+                selectedText = "None";
+            } else {
+                selectedText = newSelected.properties[propertyKey[newSelectedLevel]] + " ("+typeName[newSelectedLevel].toLowerCase()+")";
+            }
+            selected.selectAll("path")
+                .data([newSelected]).enter()
+                .append('path')
+                .attr("d", path);
+            d3.select('#selected-title').text(selectedText);
+        })
     };
 
     function initZoom(hasBounds) {
@@ -97,52 +139,11 @@ function GeoMap() {
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity); // updated for d3 v4
 
-        data.fireSelectChange('geo', null);
     }
 
     function getOnClickedFn(index) {
         return function (d) {
-            setSelect(d, index);
-            data.fireSelectChange('geo', d); // also send inex?
-
-            if (index < 2) {
-                // meshes[index-1].style("display", "none");
-                // meshes[index].style("display", "inherit");
-
-                areas[index].style("display", "none");
-                areas[index + 1].style("display", "inherit");
-            }
-
-            // Zoom te specific area
-            var bounds = path.bounds(d),
-                dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                x = (bounds[0][0] + bounds[1][0]) / 2,
-                y = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
-                translate = [width / 2 - scale * x, height / 2 - scale * y];
-            root.transition()
-                .duration(750)
-                .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+            data.fireSelectChange('geo', d, index); // also send inex?
         };
-    }
-
-    function setSelect(el, index) {
-        var selectedText;
-        selected.selectAll("path").remove();
-        if (index === -1) {
-            el = data.withAggregate(null, index);
-            selectedText = "Den Haag (city)";
-        } else if (el === null) {
-            selectedText = "None";
-        } else {
-            el = data.withAggregate(el, index);
-            selectedText = el.properties[propertyKey[index]] + " ("+typeName[index].toLowerCase()+")";
-        }
-        selected.selectAll("path")
-            .data([el]).enter()
-            .append('path')
-            .attr("d", path);
-        d3.select('#selected-title').text(selectedText);
     }
 }

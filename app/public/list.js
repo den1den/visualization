@@ -26,9 +26,9 @@ function ListSelector() {
 
     this.setList = setList;
 
-    function getOnClickFn(d) {
+    function getOnClickFn(d, index) {
         return function () {
-            map.select(d);
+            data.fireSelectChange('list', d, index);
         }
     }
 
@@ -39,7 +39,7 @@ function ListSelector() {
                 .append('span')
                 .attr('class', 'tag tag-default tag-pill float-xs-right')
                 .text(d.properties[propertyKey[index]])
-                .on('click', getOnClickFn(d));
+                .on('click', getOnClickFn(d, index));
         });
     };
 

@@ -89,16 +89,23 @@ function TopoJsonData() {
 
     var changeListeners = [];
     this.addChangeListener = function(onChange){
-        changeListeners.append(onChange);
+        changeListeners.push(onChange);
     };
 
     var selected = null;
-    this.fireSelectChange = function(source, newSelected){
-        console.log("fireSelectChange("+source+", "+newSelected+")");
-        changeListeners.forEach(function (onChange) {
-            onChange(source, selected, newSelected);
-        });
-        selected = newSelected;
+    var selectedLevel = -1;
+    this.fireSelectChange = function(source, newSelected, newSelectedLevel){
+        if(newSelectedLevel !== selectedLevel || newSelected !== selected
+            //|| (newSelected !== null && selected !== null && newSelected.properties !== selected.properties)
+        ) {
+            console.log("fireSelectChange(source=" + source + ", level=" + newSelectedLevel + ", newSelected=");
+            console.log(newSelected);
+            changeListeners.forEach(function (onChange) {
+                onChange(source, newSelected, newSelectedLevel, selected, selectedLevel); //source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel
+            });
+            selected = newSelected;
+            selectedLevel = newSelectedLevel;
+        }
     }
 }
 
