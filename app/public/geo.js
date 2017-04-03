@@ -51,12 +51,10 @@ function GeoMap() {
         //init
         initZoom(data.getMesh(2));
         setSelect(null, -1);
-
         function append(index) {
             var features = data.getFeature(index).features,
                 mesh = data.getMesh(index),
                 clickedFn = getOnClickedFn(index);
-
             areas[index].selectAll('path')
                 .data(features).enter()
                 .append('path').attr("d", path)
@@ -146,7 +144,5 @@ function GeoMap() {
             .append('path')
             .attr("d", path);
         d3.select('#selected-title').text(selectedText);
-
-        chart.setChartData(el);
     }
 }

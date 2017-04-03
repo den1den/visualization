@@ -38,34 +38,8 @@ Chart = function (csx, csy) {
         return d[0];
     }
 
-    function parseXY(feature) {
-        var data = [];
-
-        if (feature.properties.data) {
-            for (var key in feature.properties.data) {
-                if (feature.properties.data.hasOwnProperty(key)) {
-                    data.push([+key, feature.properties.data[key]]);
-                }
-            }
-        }
-        return data;
-    }
-
     var getXP = wrap(xAxis, getX);
     var getYP = wrap(yAxis, getY);
-
-    var data = null;
-    this.setChartData = function (d) {
-        if(d === null){
-            root.selectAll('*').remove();
-        } else {
-            data = parseXY(d);
-            redraw();
-        }
-    };
-    this.bindData = function (d) {
-        console.log("No data bind in chart");
-    };
 
     csx.onChange = redraw;
     csy.onChange = redraw;
@@ -81,26 +55,42 @@ Chart = function (csx, csy) {
         return [d[0] - p*l, d[1] + p * l];
     }
 
+    var chartData = null;
+    function parseXY() {
+        var feature = data.withAggregate(null, -1);
+        chartData = [];
+        if (feature.properties.data) {
+            for (var key in feature.properties.data) {
+                if (feature.properties.data.hasOwnProperty(key)) {
+                    chartData.push([+key, feature.properties.data[key]]);
+                }
+            }
+        } else {
+            console.log("Could not find feature.properties for chart");
+            root.selectAll('*').remove();
+        }
+    }
+
     function redraw() {
         var valueLine = d3.line().x(getXP).y(getYP);
 
         // Scale the range of the data
-        xAxis.domain(setDomain(d3.extent(data, getX)));
-        yAxis.domain(setDomain(d3.extent(data, getY)));
+        xAxis.domain(setDomain(d3.extent(chartData, getX)));
+        yAxis.domain(setDomain(d3.extent(chartData, getY)));
         // xAxis.domain([0, d3.max(data, getX)]);
         // yAxis.domain([0, d3.max(data, getY)]);
 
         root.selectAll('*').remove();
 
         root.selectAll('path')
-            .data([data])
+            .data([chartData])
             .enter()
             .append('path')
             .attr('d', valueLine)
             .attr('class', 'line');
 
         root.selectAll('dot')
-            .data(data)
+            .data(chartData)
             .enter()
             .append('circle')
             .attr("r", 10)
@@ -120,4 +110,11 @@ Chart = function (csx, csy) {
         root.append("g")
             .call(d3.axisLeft(yAxis));
     }
+
+    var data  = null;
+    this.bindData = function (d) {
+        data = d;
+        parseXY();
+        redraw();
+    };
 };
