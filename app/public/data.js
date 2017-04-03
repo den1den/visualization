@@ -27,7 +27,6 @@ function TopoJsonData() {
     this.getFeature = function (index) {
         return topojson.feature(_data, _data.objects[objectKey[index]]);
     };
-
     this.withAggregate = function (feature, index) {
         if (index == 2) {
             return feature;
@@ -56,7 +55,6 @@ function TopoJsonData() {
             return feature;
         }
     };
-
     function join(property_datas) {
         var new_data = [], i, year, newdict, newval;
         for (i = 0; i < 28; i++) {
@@ -87,6 +85,20 @@ function TopoJsonData() {
             }
         }
         return new_data;
+    }
+
+    var changeListeners = [];
+    this.addChangeListener = function(onChange){
+        changeListeners.append(onChange);
+    };
+
+    var selected = null;
+    this.fireSelectChange = function(source, newSelected){
+        console.log("fireSelectChange("+source+", "+newSelected+")");
+        changeListeners.forEach(function (onChange) {
+            onChange(source, selected, newSelected);
+        });
+        selected = newSelected;
     }
 }
 
@@ -127,18 +139,6 @@ function loadCsv(callback) {
             console.log("Data loaded");
             callback(data);
         });
-}
-
-
-function sortByProperty(key) {
-    return function (a, b) {
-        if (a.properties[key] < b.properties[key]) {
-            return -1;
-        } else if (a.properties[key] > b.properties[key]) {
-            return 1;
-        }
-        return 0;
-    }
 }
 
 function Axis(controlSelect, titleSelect, defaults) {

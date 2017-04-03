@@ -1,13 +1,14 @@
+#
+# requires: npm install topojson
+#
 import csv
 import json
 import os
 import re
+import subprocess
 from operator import itemgetter
-# requires: npm install topojson
 
 # input
-import subprocess
-
 input_data_folder = os.path.join(os.path.dirname(__file__), 'data-raw')
 
 # output

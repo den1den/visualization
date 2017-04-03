@@ -10,9 +10,11 @@ var x = new DataAxis('#select-x', '#title-x', {'owner': 'all', 'source': 'total'
     y = new DataAxis('#select-y', '#title-y', {'owner': 'all', 'source': 'co2', 'agg': 'avg'}),
     chart = new Chart(x, y),
     list = new ListSelector(),
-    map = new GeoMap(list),
+    map = new GeoMap(),
     data = new TopoJsonData();
 
 data.get(function () {
-    map.setData(data);
+    map.bindData(data);
+    list.bindData(data);
+    chart.bindData(data);
 });

@@ -10,11 +10,15 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
     <!--<div>-->
         <!--<h1>Den Haag</h1>-->
     <!--</div>-->
-    <div style="height: 10px;"></div>
+    <div style="">
+        <blockquote class="blockquote" id="selected-title-container">
+            <h3 class="mb-0"><small>Selected:</small>  <span id="selected-title"></span></h3>
+        </blockquote>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <div id="geo-container">
@@ -93,11 +97,6 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div>
-                <blockquote class="blockquote" id="selected-title-container">
-                    <h3 class="mb-0"><small>Selected:</small>  <span id="selected-title"></span></h3>
-                </blockquote>
-            </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="card card-block">
@@ -133,6 +132,7 @@
 <script src="chart.js"></script>
 <script src="slider.js"></script>
 <script src="geo.js"></script>
+<script src="list.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

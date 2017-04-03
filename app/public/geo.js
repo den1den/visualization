@@ -2,7 +2,7 @@
  * Created by Dennis on 28-1-2017.
  */
 
-function GeoMap(list) {
+function GeoMap() {
     var svg = d3.select("#geo");
 
     var $svg = $('#geo');
@@ -47,7 +47,7 @@ function GeoMap(list) {
 
     var selected = root.append("g").attr("id", "selected-area");
 
-    this.setData = function (data) {
+    this.bindData = function (data) {
         //init
         initZoom(data.getMesh(2));
         setSelect(null, -1);
@@ -64,14 +64,12 @@ function GeoMap(list) {
             // meshes[index].append("path")
             //     .datum(mesh)
             //     .attr("d", path);
-
-            list.fillList(features, index);
         }
-
         append.call(this, 0);
         append.call(this, 1);
         append.call(this, 2);
     };
+
     function initZoom(hasBounds) {
         projection.scale(1).translate([0, 0]);
         var s, t,
@@ -101,14 +99,13 @@ function GeoMap(list) {
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity); // updated for d3 v4
 
-        list.setList(0);
-
-        setSelect(null);
+        data.fireSelectChange('geo', null);
     }
 
     function getOnClickedFn(index) {
         return function (d) {
             setSelect(d, index);
+            data.fireSelectChange('geo', d); // also send inex?
 
             if (index < 2) {
                 // meshes[index-1].style("display", "none");
@@ -116,8 +113,6 @@ function GeoMap(list) {
 
                 areas[index].style("display", "none");
                 areas[index + 1].style("display", "inherit");
-
-                list.setList(index + 1);
             }
 
             // Zoom te specific area
@@ -153,51 +148,5 @@ function GeoMap(list) {
         d3.select('#selected-title').text(selectedText);
 
         chart.setChartData(el);
-    }
-}
-
-function ListSelector() {
-    var lists = [
-            d3.select('#list-stadsdeel'),
-            d3.select('#list-wijk').style("display", "none"),
-            d3.select('#list-buurt').style("display", "none")
-        ],
-        listButtons = [
-            d3.select("#list-tab-stadsdeel"),
-            d3.select("#list-tab-wijk"),
-            d3.select("#list-tab-buurt")
-        ];
-
-    listButtons.forEach(function (el, i) {
-        el.on('click', function () {
-            setList(i);
-        });
-    });
-
-    function setList(index) {
-        var i = -1;
-        while (++i <= 2) {
-            lists[i].style("display", i === index ? "flex" : "none");
-            listButtons[i].attr("class", "nav-link" + (i === index ? " active" : ""));
-        }
-    }
-
-    this.setList = setList;
-
-    function getOnClickFn(d) {
-        return function () {
-            map.select(d);
-        }
-    }
-
-    this.fillList = function (features, index) {
-        features.sort(sortByProperty(propertyKey[index])).forEach(function (d) {
-            lists[index].append('li')
-                .attr('class', 'list-group-item')
-                .append('span')
-                .attr('class', 'tag tag-default tag-pill float-xs-right')
-                .text(d.properties[propertyKey[index]])
-                .on('click', getOnClickFn(d));
-        });
     }
 }

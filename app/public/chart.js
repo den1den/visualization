@@ -40,6 +40,7 @@ Chart = function (csx, csy) {
 
     function parseXY(feature) {
         var data = [];
+
         if (feature.properties.data) {
             for (var key in feature.properties.data) {
                 if (feature.properties.data.hasOwnProperty(key)) {
@@ -55,12 +56,15 @@ Chart = function (csx, csy) {
 
     var data = null;
     this.setChartData = function (d) {
-        if(d == null){
+        if(d === null){
             root.selectAll('*').remove();
         } else {
             data = parseXY(d);
             redraw();
         }
+    };
+    this.bindData = function (d) {
+        console.log("No data bind in chart");
     };
 
     csx.onChange = redraw;

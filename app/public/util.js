@@ -8,12 +8,22 @@ function stopped() {
     if (d3.event.defaultPrevented) d3.event.stopPropagation();
 }
 
-function neq(a, b){
+function neq(a, b) {
     return a !== b;
 }
 
-function wrap(funca, funcb){
+function wrap(funca, funcb) {
     return function (arg) {
         return funca(funcb(arg));
+    }
+}
+function sortByProperty(key) {
+    return function (a, b) {
+        if (a.properties[key] < b.properties[key]) {
+            return -1;
+        } else if (a.properties[key] > b.properties[key]) {
+            return 1;
+        }
+        return 0;
     }
 }
