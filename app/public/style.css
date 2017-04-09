@@ -73,6 +73,11 @@ a:hover {
 .list-group-flush .list-group-item {
     border: none;
 }
+
+.list-group-item.active{
+    background-color: #fd8d3c;
+    border-color: #fd8d3c;
+}
 /***************************************/
 #chart {
     width: 100%;
