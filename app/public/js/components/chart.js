@@ -1,20 +1,22 @@
 /**
  * Created by Dennis on 29-1-2017.
  */
+/*global d3*/
 
-Chart = function (csx, csy) {
-    var $svg = $('#chart');
+var Chart = function (csx, csy) {
+    var $svg = $("#chart");
     var svg = d3.select("#chart");
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50};
     var width = $svg.width() - margin.left - margin.right - 10;
     var height = 490 - 10;
 
-    svg.append('rect')
-        .attr('class', 'background')
+    svg.append("rect")
+        .attr("class", "background")
         .attr("width", width)
         .attr("height", height)
         .attr("x", margin.left).attr("y", margin.top);
+
 
     var xAxis = d3.scaleLinear().range([0, width]);
     var yAxis = d3.scaleLinear().range([height, 0]);
@@ -44,20 +46,21 @@ Chart = function (csx, csy) {
     csx.onChange = redraw;
     csy.onChange = redraw;
 
-    d3.select('#chart-legend .table-years').selectAll('th')
-        .style('background-color', function (d, i) {
+    d3.select("#chart-legend .table-years").selectAll("th")
+        .style("background-color", function (d, i) {
             return yearColors[i];
         });
 
-    function setDomain(d){
+    function setDomain(d) {
         var l = d[1] - d[0];
         var p = 0.05;
-        return [d[0] - p*l, d[1] + p * l];
+        return [d[0] - p * l, d[1] + p * l];
     }
 
     var chartData = null;
-    function parseXY() {
-        var feature = data.withAggregate(null, -1);
+
+    function parseXY(feature, index) {
+        feature = data.withAggregate(feature, index);
         chartData = [];
         if (feature.properties.data) {
             for (var key in feature.properties.data) {
@@ -67,7 +70,7 @@ Chart = function (csx, csy) {
             }
         } else {
             console.log("Could not find feature.properties for chart");
-            root.selectAll('*').remove();
+            root.selectAll("*").remove();
         }
     }
 
@@ -80,26 +83,25 @@ Chart = function (csx, csy) {
         // xAxis.domain([0, d3.max(data, getX)]);
         // yAxis.domain([0, d3.max(data, getY)]);
 
-        root.selectAll('*').remove();
+        root.selectAll("*").remove();
 
-        root.selectAll('path')
+        root.selectAll("path")
             .data([chartData])
             .enter()
-            .append('path')
-            .attr('d', valueLine)
-            .attr('class', 'line');
+            .append("path")
+            .attr("d", valueLine)
+            .attr("class", "line");
 
-        root.selectAll('dot')
+        root.selectAll("dot")
             .data(chartData)
             .enter()
-            .append('circle')
+            .append("circle")
             .attr("r", 10)
             .attr("cx", getXP)
             .attr("cy", getYP)
             .style("fill", function (d) {
                 return yearColors[getYear(d) - 2011];
             });
-
 
         // Add the X Axis
         root.append("g")
@@ -111,10 +113,15 @@ Chart = function (csx, csy) {
             .call(d3.axisLeft(yAxis));
     }
 
-    var data  = null;
+    var data = null;
     this.bindData = function (d) {
         data = d;
-        parseXY();
+        parseXY(null, -1);
         redraw();
+
+        data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
+            parseXY(newSelected, newSelectedLevel);
+            redraw();
+        })
     };
 };

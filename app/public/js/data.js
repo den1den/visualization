@@ -1,15 +1,15 @@
 /**
  * Created by Dennis on 27-1-2017.
  */
+/*global d3*/
+var typeName = ["City part", "District", "Neighborhood"];
+var objectKey = ["stadsdeel", "wijken", "buurten"];
+var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
+var propertyCodeKey = ["stadsdeelcode", "wijkcode", "buurtcode"];
+var householdfilter = [["Total", "total"], ["With electricity", "electricity"], ["With gas", "gas"], ["With solar", "solar"], ["With other source", "other"]];
 
-var typeName = ['City part', 'District', 'Neighborhood'];
-var objectKey = ['stadsdeel', 'wijken', 'buurten'];
-var propertyKey = ['stadsdeelnaam', 'wijknaam', 'buurtnaam'];
-var propertyCodeKey = ['stadsdeelcode', 'wijkcode', 'buurtcode'];
-var householdfilter = [['Total', 'total'], ['With electricity', 'electricity'], ['With gas', 'gas'], ['With solar', 'solar'], ['With other source', 'other']];
-
-var yearColors = ['#feedde', '#fdbe85', '#fd8d3c', '#e6550d', '#a63603'];
-var yearColors = ['#fdd0a2', '#fdae6b', '#fd8d3c', '#e6550d', '#a63603'];
+var yearColors = ["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"];
+yearColors = ["#fdd0a2", "#fdae6b", "#fd8d3c", "#e6550d", "#a63603"];
 
 function TopoJsonData() {
     var _data = null;
@@ -88,15 +88,15 @@ function TopoJsonData() {
     }
 
     var changeListeners = [];
-    this.addChangeListener = function(onChange){
+    this.addChangeListener = function (onChange) {
         changeListeners.push(onChange);
     };
 
     var selected = null;
     var selectedLevel = -1;
-    this.fireSelectChange = function(source, newSelected, newSelectedLevel){
-        if(newSelectedLevel !== selectedLevel || newSelected !== selected
-            //|| (newSelected !== null && selected !== null && newSelected.properties !== selected.properties)
+    this.fireSelectChange = function (source, newSelected, newSelectedLevel) {
+        if (newSelectedLevel !== selectedLevel || newSelected !== selected
+        //|| (newSelected !== null && selected !== null && newSelected.properties !== selected.properties)
         ) {
             console.log("fireSelectChange(source=" + source + ", level=" + newSelectedLevel + ", newSelected=");
             console.log(newSelected);
@@ -148,85 +148,88 @@ function loadCsv(callback) {
         });
 }
 
+
+var collum_names_nl = [
+        "Totaal aantal Vastgoedobjecten", "Totaal aantal Vastgoedobjecten Elektra", "Totaal aantal Vastgoedobjecten Gas",
+        "Totaal CO2 uitstoot (kg)", "Totaal verbruik Elektra (kWh)", "Totaal verbruik Gas (m3)",
+        "Aantal Vastgoedobjecten Particulier", "Aantal Vastgoedobjecten Elektra Particulier", "Aantal Vastgoedobjecten Gas Particulier",
+        "CO2 uitstoot Particulier (kg)", "Verbruik Elektra Particulier (kWh)", "Verbruik Gas Particulier (m3)",
+        "Gemiddelde CO2 uitstoot Particulier (kg)", "Gemiddelde verbruik Elektra Particulier (kWh)", "Gemiddelde verbruik Gas Particulier (m3)", "Aantal Vastgoedobjecten Zakelijk", "Aantal Vastgoedobjecten Elektra Zakelijk", "Aantal Vastgoedobjecten Gas Zakelijk", "CO2 uitstoot Zakelijk (kg)", "Verbruik Elektra Zakelijk (kWh)", "Verbruik Gas Zakelijk (m3)", "Gemiddelde CO2 uitstoot Zakelijk (kg)", "Gemiddelde verbruik Elektra Zakelijk (kWh)", "Gemiddelde verbruik Gas Zakelijk (m3)", "Aantal Vastgoedobjecten Opwek Zonne-energie KV", "Opwek Zonne-energie KV (kWh)", "Aantal Vastgoedobjecten Opwek Overig", "Opwek Overig (kWh)"
+    ],
+    collum_names = [
+        "Real estates", // 0 filter=combined, aggr=total, source=
+        "Real estates with electricity",
+        "Real estates with gas",
+        "Co2 emissions (kg)", // 3
+        "Power consumption (kWh)",
+        "Gas consumption (m3)",
+
+        "Average Co2 emissions (kg)", // 6 (CUSTOM ADDED)
+        "Average power consumption (kWh)",
+        "Average gas consumption (m3)", // (END CUSTOM ADDED)
+
+        "Private real estates", // 9 filter=private
+        "Private real estates with electricity",
+        "Private real estates with gas",
+        "Private Co2 emissions (kg)",
+        "Private power consumption (kWh)",
+        "Private gas consumption (m3)",
+
+        "Average private Co2 emissions (kg)", // 15
+        "Average private power consumption (kWh)",
+        "Average private gas consumption (m3)",
+
+        "Commercial real estates", // 18 filter=commercial
+        "Commercial real estates with electricity",
+        "Commercial real estates with gas",
+        "Commercial Co2 emissions (kg)",
+        "Commercial power consumption (kWh)",
+        "Commercial gas consumption (m3)",
+
+        "Average commercial Co2 emissions (kg)", // 24
+        "Average commercial power consumption (kWh)",
+        "Average commercial gas consumption (m3)",
+
+        "Real estates with solar energy", // 27 filter=combined, solar energy
+        "Solar energy production (kWh)",
+
+        "Real estates with other power production", // 29 other
+        "Other production (kWh)"
+    ];
+
 function Axis(controlSelect, titleSelect, defaults) {
     var AXIS = this,
         axisTitle = d3.select(titleSelect),
         root = d3.select(controlSelect),
-        collum_names_nl = [
-            'Totaal aantal Vastgoedobjecten', 'Totaal aantal Vastgoedobjecten Elektra', 'Totaal aantal Vastgoedobjecten Gas',
-            'Totaal CO2 uitstoot (kg)', 'Totaal verbruik Elektra (kWh)', 'Totaal verbruik Gas (m3)',
-            'Aantal Vastgoedobjecten Particulier', 'Aantal Vastgoedobjecten Elektra Particulier', 'Aantal Vastgoedobjecten Gas Particulier',
-            'CO2 uitstoot Particulier (kg)', 'Verbruik Elektra Particulier (kWh)', 'Verbruik Gas Particulier (m3)',
-            'Gemiddelde CO2 uitstoot Particulier (kg)', 'Gemiddelde verbruik Elektra Particulier (kWh)', 'Gemiddelde verbruik Gas Particulier (m3)', 'Aantal Vastgoedobjecten Zakelijk', 'Aantal Vastgoedobjecten Elektra Zakelijk', 'Aantal Vastgoedobjecten Gas Zakelijk', 'CO2 uitstoot Zakelijk (kg)', 'Verbruik Elektra Zakelijk (kWh)', 'Verbruik Gas Zakelijk (m3)', 'Gemiddelde CO2 uitstoot Zakelijk (kg)', 'Gemiddelde verbruik Elektra Zakelijk (kWh)', 'Gemiddelde verbruik Gas Zakelijk (m3)', 'Aantal Vastgoedobjecten Opwek Zonne-energie KV', 'Opwek Zonne-energie KV (kWh)', 'Aantal Vastgoedobjecten Opwek Overig', 'Opwek Overig (kWh)'
-        ],
-        collum_names = [
-            'Real estates', //0
-            'Real estates with electricity',
-            'Real estates with gas',
-            'Co2 emissions (kg)',
-            'Power consumption (kWh)',
-            'Gas consumption (m3)',
 
-            'Average Co2 emissions (kg)', // 6 CUSTOM ADDED
-            'Average power consumption (kWh)',
-            'Average gas consumption (m3)',
-
-            'Private real estates', //9
-            'Private real estates with electricity',
-            'Private real estates with gas',
-            'Private Co2 emissions (kg)',
-            'Private power consumption (kWh)',
-            'Private gas consumption (m3)',
-
-            'Average private Co2 emissions (kg)', //15
-            'Average private power consumption (kWh)',
-            'Average private gas consumption (m3)',
-
-            'Commercial real estates', //18
-            'Commercial real estates with electricity',
-            'Commercial real estates with gas',
-            'Commercial Co2 emissions (kg)',
-            'Commercial power consumption (kWh)',
-            'Commercial gas consumption (m3)',
-
-            'Average commercial Co2 emissions (kg)',//24
-            'Average commercial power consumption (kWh)',
-            'Average commercial gas consumption (m3)',
-
-            'Real estates with solar energy', //27 (private+commercial)
-            'Solar energy production (kWh)',
-
-            'Real estates with other power production', //29 (private+commercial)
-            'Other production (kWh)'
-        ],
-        _owner,
+        _filter_type,
         _source,
         _aggr,
         _index = -1;
 
-    function setOwner(owner) {
-        if (owner === 'all' || owner === 'total') {
-            _owner = 0;
-        } else if (owner === 'private') {
-            _owner = 9;
-        } else if (owner === 'commercial') {
-            _owner = 18;
+    function setOwner(filter_type) {
+        if (filter_type === "all" || filter_type === "total") {
+            _filter_type = 0;
+        } else if (filter_type === "private") {
+            _filter_type = 9;
+        } else if (filter_type === "commercial") {
+            _filter_type = 18;
         } else {
-            throw new Error("setOner(" + owner + ") not possible");
+            throw new Error("setOner(" + filter_type + ") not possible");
         }
         _index = -1;
     }
 
     function setSource(source) {
-        if (source === 'co2' || source === 'total') {
+        if (source === "co2" || source === "total") {
             _source = 0;
-        } else if (source === 'electricity') {
+        } else if (source === "electricity") {
             _source = 1;
-        } else if (source === 'gas') {
+        } else if (source === "gas") {
             _source = 2;
-        } else if (source === 'solar') {
+        } else if (source === "solar") {
             _source = 27;
-        } else if (source === 'other') {
+        } else if (source === "other") {
             _source = 29;
         } else {
             throw new Error("setSource(" + source + ") not possible");
@@ -235,11 +238,11 @@ function Axis(controlSelect, titleSelect, defaults) {
     }
 
     function setAgg(aggr) {
-        if (aggr === 'count' || aggr === 'total') {
+        if (aggr === "count" || aggr === "total") {
             _aggr = 0;
-        } else if (aggr === 'value') {
+        } else if (aggr === "value") {
             _aggr = 3;
-        } else if (aggr === 'avg') {
+        } else if (aggr === "avg") {
             _aggr = 6;
         } else {
             throw new Error("setAgg(" + aggr + ") not possible");
@@ -249,7 +252,7 @@ function Axis(controlSelect, titleSelect, defaults) {
 
     function constructIndex() {
         if (_source === 27 || _source === 29) {
-            if (_owner === 0) {
+            if (_filter_type === 0) {
                 if (_aggr === 0) {
                     return _source;
                 } else if (_aggr === 3) {
@@ -258,17 +261,18 @@ function Axis(controlSelect, titleSelect, defaults) {
             }
         } else if (_source !== -1) {
             if (_aggr !== -1) {
-                if (_owner !== -1) {
-                    return _owner + _aggr + _source;
+                if (_filter_type !== -1) {
+                    return _filter_type + _aggr + _source;
                 }
             }
         }
-        throw new Error("No valid config _source=" + _source + ", _owner=" + _owner + ", _aggr=" + _aggr);
+        throw new Error("No valid config _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
     }
 
     function getIndex() {
         if (_index === -1) {
             _index = constructIndex();
+            console.log("getIndex, index=" + _index + ", _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
         }
         return _index;
     }
@@ -277,11 +281,11 @@ function Axis(controlSelect, titleSelect, defaults) {
 
     function reset() {
         if (defaults) {
-            setOwner(defaults['owner']);
-            setSource(defaults['source']);
-            setAgg(defaults['agg']);
+            setOwner(defaults["owner"]);
+            setSource(defaults["source"]);
+            setAgg(defaults["agg"]);
         } else {
-            _owner = -1;
+            _filter_type = -1;
             _source = -1;
             _aggr = -1;
             _index = -1;
@@ -338,21 +342,21 @@ function Axis(controlSelect, titleSelect, defaults) {
 
     // HTML
     function getDropdownID(name) {
-        return controlSelect.substring(1) + '-dropdown-' + name.split(' ')[0].toLowerCase();
+        return controlSelect.substring(1) + "-dropdown-" + name.split(" ")[0].toLowerCase();
     }
 
     function TogggleMenu(options, onChange) {
-        var buttons = root.append('div')
-            .attr('data-toggle', 'buttons');
+        var buttons = root.append("div")
+            .attr("data-toggle", "buttons");
         options.forEach(function (o) {
-            buttons.append('label')
-                .attr('class', 'btn btn-primary')
-                .on('click', function () {
+            buttons.append("label")
+                .attr("class", "btn btn-primary")
+                .on("click", function () {
                     setValue(o[1]);
                 })
                 .html(o[0])
-                .append('input')
-                .attr('type', 'radio')
+                .append("input")
+                .attr("type", "radio")
 
         });
 
@@ -370,33 +374,33 @@ function Axis(controlSelect, titleSelect, defaults) {
 
     function DropdownMenu(name, values, onChange, visible) {
         var _visible = visible;
-        var dropdown = root.append('div')
-            .attr('class', 'dropdown')
-            .attr('id', getDropdownID(name));
-        dropdown.append('button')
-            .attr('class', 'btn btn-secondary dropdown-toggle')
-            .attr('type', 'button')
-            .attr('data-toggle', 'dropdown')
+        var dropdown = root.append("div")
+            .attr("class", "dropdown")
+            .attr("id", getDropdownID(name));
+        dropdown.append("button")
+            .attr("class", "btn btn-secondary dropdown-toggle")
+            .attr("type", "button")
+            .attr("data-toggle", "dropdown")
             .html(name);
-        var dropdownOptions = dropdown.append('div')
-            .attr('class', 'dropdown-menu');
+        var dropdownOptions = dropdown.append("div")
+            .attr("class", "dropdown-menu");
         values.forEach(function (v) {
-            dropdownOptions.append('button')
-                .attr('class', 'dropdown-item')
+            dropdownOptions.append("button")
+                .attr("class", "dropdown-item")
                 .html(v[0])
-                .on('click', function () {
+                .on("click", function () {
                     setValue(v[1]);
                 });
         });
         this.show = function () {
             var r = !_visible;
-            dropdown.style('display', 'inherit');
+            dropdown.style("display", "inherit");
             _visible = true;
             return r;
         };
         this.hide = function () {
             var r = _visible;
-            dropdown.style('display', 'none');
+            dropdown.style("display", "none");
             _visible = false;
             return r;
         };
@@ -423,18 +427,19 @@ function Axis(controlSelect, titleSelect, defaults) {
     this.setOwner = setOwner;
     this.changed = changed;
 }
+
 // function YearAxis(controlSelect, titleSelect, defaults) {
 //     Axis.call(this, controlSelect, titleSelect, defaults);
 //     var AXIS = this;
 //
 //     var menu = new AXIS.TogggleMenu(
-//         [['Households', 0], ['Years', 1]],
+//         [["Households", 0], ["Years", 1]],
 //         function (v) {
 //             console.log("Xaxis=" + v);
 //             if (v === 0) {
-//                 AXIS.setAgg('count');
-//                 AXIS.setSource('total');
-//                 AXIS.setOwner('all');
+//                 AXIS.setAgg("count");
+//                 AXIS.setSource("total");
+//                 AXIS.setOwner("all");
 //                 AXIS.updateAxisTitle();
 //                 hfilter.show();
 //             } else {
@@ -443,22 +448,23 @@ function Axis(controlSelect, titleSelect, defaults) {
 //             }
 //         }),
 //         hfilter = new AXIS.DropdownMenu(
-//             'Filter',
+//             "Filter",
 //             householdfilter,
 //             function (v) {
 //                 AXIS.setSource(v);
 //                 AXIS.updateAxisTitle();
 //             });
 // }
+
 function DataAxis(controlSelect, titleSelect, defaults) {
     Axis.call(this, controlSelect, titleSelect, defaults);
     var AXIS = this;
 
     var avg = false,
-        dr0 = new AXIS.DropdownMenu('Data',
-            [['Real estate', 0], ['Measurements', 1]],
+        dr0 = new AXIS.DropdownMenu("Data",
+            [["Real estate", 0], ["Measurements", 1]],
             function (v) {
-                console.log('Type=' + v);
+                console.log("Type=" + v);
                 var changed;
                 if (v === 0) {
                     changed = dr1.show();
@@ -471,42 +477,32 @@ function DataAxis(controlSelect, titleSelect, defaults) {
                     AXIS.reset();
                 }
             }, true),
-        dr1 = new AXIS.DropdownMenu('Filter',
+        dr1 = new AXIS.DropdownMenu("Filter",
             householdfilter,
             function (v) {
-                console.log('Filter1=' + v);
+                console.log("Filter1=" + v);
                 //agg == 0
-                AXIS.setAgg('count');
+                AXIS.setAgg("count");
                 AXIS.setSource(v);
-                AXIS.setOwner('all');
+                AXIS.setOwner("all");
                 AXIS.changed();
             }, false),
-        dr2 = new AXIS.DropdownMenu('Energy type',
-            [['CO<sub>2</sub>', 'co2'], ['Electricity', 'electricity'], ['Gas', 'gas'], ['Solar', 'solar'], ['Other', 'other']],
+        dr2 = new AXIS.DropdownMenu("Energy type",
+            [["CO<sub>2</sub>", "co2"], ["Electricity", "electricity"], ["Gas", "gas"], ["Solar", "solar"], ["Other", "other"]],
             function (v) {
-                console.log('Energy type=' + v);
-                dr3.setValue('all');
+                console.log("Energy type=" + v);
+                dr3.setValue("all");
                 dr3.show();
             }, false),
-        dr3 = new AXIS.DropdownMenu('Filter',
-            [['All', 'all'], ['Private', 'private'], ['Commercial', 'commercial']],
+        dr3 = new AXIS.DropdownMenu("Filter",
+            [["All", "all"], ["Private", "private"], ["Commercial", "commercial"]],
             function (v) {
-                console.log('Filter type=' + v);
+                console.log("Filter type=" + v);
 
-                AXIS.setAgg('value');
+                AXIS.setAgg("value");
                 AXIS.setSource(dr2.getLastValue());
                 AXIS.setOwner(v);
                 AXIS.changed();
             }, false);
 
 }
-
-// cs = new CollumSelector();
-// cs.setSource('co2');
-// cs.setAgg('avg');
-// cs.setOwner('commercial');
-// console.log(cs.getName());
-// cs.setSource('other');
-// cs.setAgg('total');
-// cs.setOwner('total');
-// console.log(cs.getName());

@@ -1,11 +1,11 @@
 /**
  * Created by Dennis on 28-1-2017.
  */
-
+/*global d3*/
 function GeoMap() {
     var svg = d3.select("#geo");
 
-    var $svg = $('#geo');
+    var $svg = $("#geo");
     var width = $svg.width(),
         height = $svg.height();
 
@@ -16,13 +16,15 @@ function GeoMap() {
     // Setup root element
     svg.attr("width", width)
         .attr("height", height)
-        .on('click', stopped);
+        .on("click", stopped);
     // Add background
-    svg.append('rect')
-        .attr('class', 'background')
+    svg.append("rect")
+        .attr("class", "background")
         .attr("width", width)
         .attr("height", height)
-        .on('click', function () { data.fireSelectChange('geo', null, -1); });
+        .on("click", function () {
+            data.fireSelectChange("geo", null, -1);
+        });
     var root = svg.append("g");
 
     var areas = [
@@ -54,14 +56,15 @@ function GeoMap() {
             var features = data.getFeature(index).features,
                 mesh = data.getMesh(index),
                 clickedFn = getOnClickedFn(index);
-            areas[index].selectAll('path')
+            areas[index].selectAll("path")
                 .data(features).enter()
-                .append('path').attr("d", path)
-                .on('click', clickedFn);
+                .append("path").attr("d", path)
+                .on("click", clickedFn);
             // meshes[index].append("path")
             //     .datum(mesh)
             //     .attr("d", path);
         }
+
         append.call(this, 0);
         append.call(this, 1);
         append.call(this, 2);
@@ -71,13 +74,13 @@ function GeoMap() {
                 // meshes[index-1].style("display", "none");
                 // meshes[index].style("display", "inherit");
 
-                if(newSelectedLevel >= 0)
+                if (newSelectedLevel >= 0)
                     areas[newSelectedLevel].style("display", "none");
                 areas[newSelectedLevel + 1].style("display", "inherit");
             }
 
             // Zoom te specific area
-            if(newSelected == null){
+            if (newSelected == null) {
                 resetZoom();
             } else {
                 var bounds = path.bounds(newSelected),
@@ -100,13 +103,13 @@ function GeoMap() {
             } else if (newSelected === null) {
                 selectedText = "None";
             } else {
-                selectedText = newSelected.properties[propertyKey[newSelectedLevel]] + " ("+typeName[newSelectedLevel].toLowerCase()+")";
+                selectedText = newSelected.properties[propertyKey[newSelectedLevel]] + " (" + typeName[newSelectedLevel].toLowerCase() + ")";
             }
             selected.selectAll("path")
                 .data([newSelected]).enter()
-                .append('path')
+                .append("path")
                 .attr("d", path);
-            d3.select('#selected-title').text(selectedText);
+            d3.select("#selected-title").text(selectedText);
         })
     };
 
@@ -143,7 +146,7 @@ function GeoMap() {
 
     function getOnClickedFn(index) {
         return function (d) {
-            data.fireSelectChange('geo', d, index); // also send inex?
+            data.fireSelectChange("geo", d, index); // also send inex?
         };
     }
 }

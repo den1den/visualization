@@ -14,6 +14,10 @@ a:hover {
     background-color: white;
 }
 /***************************************/
+#selection-list {
+    font-size: 0.7em;
+}
+/***************************************/
 #geo {
     stroke-linejoin: round;
     stroke-linecap: round;
