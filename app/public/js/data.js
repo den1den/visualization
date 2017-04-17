@@ -197,16 +197,15 @@ var collum_names_nl = [
         "Other production (kWh)"
     ];
 
-function Axis(controlSelect, titleSelect, defaults) {
-    var AXIS = this,
-        axisTitle = d3.select(titleSelect),
-        root = d3.select(controlSelect),
-
-        _filter_type,
+function DataIndexHelper(defaults){
+    var _filter_type,
         _source,
         _aggr,
-        _index = -1;
+        index;
 
+    reset();
+
+    this.setOwner = setOwner;
     function setOwner(filter_type) {
         if (filter_type === "all" || filter_type === "total") {
             _filter_type = 0;
@@ -217,9 +216,10 @@ function Axis(controlSelect, titleSelect, defaults) {
         } else {
             throw new Error("setOner(" + filter_type + ") not possible");
         }
-        _index = -1;
+        index = -1;
     }
 
+    this.setSource = setSource;
     function setSource(source) {
         if (source === "co2" || source === "total") {
             _source = 0;
@@ -234,9 +234,10 @@ function Axis(controlSelect, titleSelect, defaults) {
         } else {
             throw new Error("setSource(" + source + ") not possible");
         }
-        _index = -1;
+        index = -1;
     }
 
+    this.setAgg = setAgg;
     function setAgg(aggr) {
         if (aggr === "count" || aggr === "total") {
             _aggr = 0;
@@ -247,7 +248,7 @@ function Axis(controlSelect, titleSelect, defaults) {
         } else {
             throw new Error("setAgg(" + aggr + ") not possible");
         }
-        _index = -1;
+        index = -1;
     }
 
     function constructIndex() {
@@ -269,43 +270,70 @@ function Axis(controlSelect, titleSelect, defaults) {
         throw new Error("No valid config _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
     }
 
+    this.getIndex = getIndex;
     function getIndex() {
-        if (_index === -1) {
-            _index = constructIndex();
-            console.log("getIndex, index=" + _index + ", _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
+        if (index === -1) {
+            index = constructIndex();
+            console.log("getIndex, index=" + index + ", _source=" + _source + ", _filter_type=" + _filter_type + ", _aggr=" + _aggr);
         }
-        return _index;
+        return index;
     }
 
-    this.onChange = null;
-
+    this.reset = reset;
     function reset() {
         if (defaults) {
-            setOwner(defaults["owner"]);
-            setSource(defaults["source"]);
-            setAgg(defaults["agg"]);
+            setOwner(defaults.owner);
+            setSource(defaults.source);
+            setAgg(defaults.agg);
         } else {
             _filter_type = -1;
             _source = -1;
             _aggr = -1;
-            _index = -1;
+            index = -1;
         }
-        changed();
     }
 
-    reset();
+    this.getValue = function(data) {
+        var index = getIndex(),
+            val;
+        if (_aggr === 6) {
+            val = data[getDataIndex(index - 3)] / data[getDataIndex(index - 6)]; //avg
+        } else {
+            val = data[getDataIndex(index)];
+        }
+        if (!val) {
+            throw new Error("Strange value on " + collum_names[index]);
+        }
+        return val;
+    }
 
+    function getDataIndex(index) {
+        if (index >= 6) {
+            index -= 3;
+        }
+        return index;
+    }
+}
+
+function Axis(controlSelect, titleSelect, defaults) {
+    var AXIS = this,
+        axisTitle = d3.select(titleSelect),
+        root = d3.select(controlSelect),
+        dataSelector = new DataIndexHelper(defaults);
+
+    AXIS.onChange = null;
     function changed() {
         updateAxisTitle();
         if (AXIS.onChange) {
             AXIS.onChange();
         }
     }
+    changed();
 
-    this.update = changed;
+    this.getValue = dataSelector.getValue;
 
     function updateAxisTitle() {
-        var index = getIndex();
+        var index = dataSelector.getIndex();
         if (index === -1) {
             axisTitle.html("None set").style("color", "#999");
         } else {
@@ -313,39 +341,12 @@ function Axis(controlSelect, titleSelect, defaults) {
         }
     }
 
-    function dataIndex(index) {
-        if (index >= 6) {
-            index -= 3;
-        }
-        return index;
-    }
-
-    this.getValue = function (data) {
-        var index = getIndex(),
-            val;
-        if (_aggr === 6) {
-            val = data[dataIndex(index - 3)] / data[dataIndex(index - 6)]; //avg
-        } else {
-            val = data[dataIndex(index)];
-        }
-        if (!val) {
-            throw new Error("Strange value on " + collum_names[index]);
-        }
-        return val;
-    };
-
-    // var year = false;
-    // function setYear(year){
-    //     year = !!year;
-    // }
-    // this.setYear = setYear;
-
     // HTML
     function getDropdownID(name) {
         return controlSelect.substring(1) + "-dropdown-" + name.split(" ")[0].toLowerCase();
     }
 
-    function TogggleMenu(options, onChange) {
+    this.ToggleMenu = function(options, onChange) {
         var buttons = root.append("div")
             .attr("data-toggle", "buttons");
         options.forEach(function (o) {
@@ -356,8 +357,7 @@ function Axis(controlSelect, titleSelect, defaults) {
                 })
                 .html(o[0])
                 .append("input")
-                .attr("type", "radio")
-
+                .attr("type", "radio");
         });
 
         var value = null;
@@ -370,9 +370,8 @@ function Axis(controlSelect, titleSelect, defaults) {
         }
 
         this.setValue = setValue;
-    }
-
-    function DropdownMenu(name, values, onChange, visible) {
+    };
+    this.DropDownMenu = function(name, values, onChange, visible) {
         var _visible = visible;
         var dropdown = root.append("div")
             .attr("class", "dropdown")
@@ -417,15 +416,7 @@ function Axis(controlSelect, titleSelect, defaults) {
         }
 
         this.setValue = setValue;
-    }
-
-    this.reset = reset;
-    this.DropdownMenu = DropdownMenu;
-    this.TogggleMenu = TogggleMenu;
-    this.setAgg = setAgg;
-    this.setSource = setSource;
-    this.setOwner = setOwner;
-    this.changed = changed;
+    };
 }
 
 // function YearAxis(controlSelect, titleSelect, defaults) {
@@ -461,7 +452,7 @@ function DataAxis(controlSelect, titleSelect, defaults) {
     var AXIS = this;
 
     var avg = false,
-        dr0 = new AXIS.DropdownMenu("Data",
+        dr0 = new AXIS.DropDownMenu("Data",
             [["Real estate", 0], ["Measurements", 1]],
             function (v) {
                 console.log("Type=" + v);
@@ -477,24 +468,24 @@ function DataAxis(controlSelect, titleSelect, defaults) {
                     AXIS.reset();
                 }
             }, true),
-        dr1 = new AXIS.DropdownMenu("Filter",
+        dr1 = new AXIS.DropDownMenu("Filter",
             householdfilter,
             function (v) {
                 console.log("Filter1=" + v);
                 //agg == 0
-                AXIS.setAgg("count");
-                AXIS.setSource(v);
-                AXIS.setOwner("all");
+                AXIS.dataSelector.setAgg("count");
+                AXIS.dataSelector.setSource(v);
+                AXIS.dataSelector.setOwner("all");
                 AXIS.changed();
             }, false),
-        dr2 = new AXIS.DropdownMenu("Energy type",
+        dr2 = new AXIS.DropDownMenu("Energy type",
             [["CO<sub>2</sub>", "co2"], ["Electricity", "electricity"], ["Gas", "gas"], ["Solar", "solar"], ["Other", "other"]],
             function (v) {
                 console.log("Energy type=" + v);
                 dr3.setValue("all");
                 dr3.show();
             }, false),
-        dr3 = new AXIS.DropdownMenu("Filter",
+        dr3 = new AXIS.DropDownMenu("Filter",
             [["All", "all"], ["Private", "private"], ["Commercial", "commercial"]],
             function (v) {
                 console.log("Filter type=" + v);
