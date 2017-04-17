@@ -17,6 +17,7 @@ output_data_folder = os.path.join(os.path.dirname(__file__), 'data-processed')
 geo2topo_command = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'node_modules', 'topojson', 'node_modules', '.bin', 'geo2topo.cmd'))
 
+
 def processGeoJson(filename, process_properties):
     raw = json.load(open(os.path.join(input_data_folder, filename)))
     features = []
@@ -54,7 +55,7 @@ buurten_typos = {
 }
 
 
-def normalize_buurtnaam(buurtnaam: str):
+def normalize_buurtnaam(buurtnaam):
     if buurtnaam in buurten_typos:
         return buurten_typos[buurtnaam]
     if buurtnaam.endswith('-zuid'):
@@ -78,15 +79,12 @@ def process_buurt_codes(properties):
     wijkcode = int(properties['WIJKCODE'])
     buurtcodes[buurtnaam] = buurtcode
     buurt_in_wijk[buurtcode] = wijkcode
-    return None
 
 
 def process_buurt_features(properties):
     buurtnaam = normalize_buurtnaam(properties['BUURTNAAM'])
     buurtcode = int(properties['BUURTCODE'])
     wijkcode = int(properties['WIJKCODE'])
-    buurtcodes[buurtnaam] = buurtcode
-    buurt_in_wijk[buurtcode] = wijkcode
     return {
         'buurtnaam': buurtnaam,
         'buurtcode': buurtcode,
@@ -110,26 +108,44 @@ wijkcodes = {}
 wijk_in_stadsdeel = {}
 
 
-def process_wijk_features(properties):
+def process_wijk_codes(properties):
     wijknaam = properties['WIJKNAAM']
     wijkcode = int(properties['WIJKCODE'])
     stadsdeelcode = int(properties['STADSDEELCODE'])
     buurtcodes[wijknaam] = wijkcode
     wijk_in_stadsdeel[wijkcode] = stadsdeelcode
+
+
+def process_wijk_features(properties):
+    wijknaam = properties['WIJKNAAM']
+    wijkcode = int(properties['WIJKCODE'])
+    stadsdeelcode = int(properties['STADSDEELCODE'])
+    wijken_in_buurt = len([k for (k, v) in buurt_in_wijk.items() if v is wijkcode])
     return {
         'wijknaam': wijknaam,
         'wijkcode': wijkcode,
         'stadsdeelcode': stadsdeelcode,
+        'wijken_in_buurt': wijken_in_buurt,
     }
 
 
 def process_wijken():
+    processGeoJson('wijken.geojson', process_wijk_codes)
+
+
+def write_wijken():
     processGeoJson('wijken.geojson', process_wijk_features)
 
 
 # Stadsdelen
 ########################################################################################################################
 stadsdeelcodes = {}
+
+
+def process_stadsdeel_codes(properties):
+    stadsdeelnaam = normalize_buurtnaam(properties['STADSDEELNAAM'])
+    stadsdeelcode = int(properties['STADSDEELCODE'])
+    stadsdeelcodes[stadsdeelnaam] = stadsdeelcode
 
 
 def process_stadsdeel_features(properties):
@@ -143,6 +159,10 @@ def process_stadsdeel_features(properties):
 
 
 def process_stadsdelen():
+    processGeoJson('stadsdeel.geojson', process_stadsdeel_codes)
+
+
+def write_stadsdelen():
     processGeoJson('stadsdeel.geojson', process_stadsdeel_features)
 
 
@@ -230,15 +250,14 @@ def process_csvs():
 
 
 def combine_geojsons(filename):
-
     output_geojson_filename = os.path.abspath(os.path.join(output_data_folder, filename))
     subprocess.run([geo2topo_command,
-                    'stadsdeel='+os.path.join(output_data_folder, 'stadsdeel.geojson'),
-                    'wijken='+os.path.join(output_data_folder, 'wijken.geojson'),
-                    'buurten='+os.path.join(output_data_folder, 'buurten.geojson'),
+                    'stadsdeel=' + os.path.join(output_data_folder, 'stadsdeel.geojson'),
+                    'wijken=' + os.path.join(output_data_folder, 'wijken.geojson'),
+                    'buurten=' + os.path.join(output_data_folder, 'buurten.geojson'),
                     '>',
                     output_geojson_filename
-    ])
+                    ])
     print('combined file written to %s' % output_geojson_filename)
 
 
@@ -252,6 +271,9 @@ if __name__ == '__main__':
 
     process_csvs()
 
+    write_stadsdelen()
     write_buurten()
+    write_wijken()
 
     combine_geojsons('combined.topojson')
+    print("The combined file can be copied to the app ('app/static/combined.json')")
