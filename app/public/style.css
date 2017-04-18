@@ -108,3 +108,7 @@ a:hover {
 #selected-title {
     margin-left: 0.25em;
 }
+.force-pull-right{
+    position: absolute;
+    right: 0.5em;
+}

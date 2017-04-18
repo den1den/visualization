@@ -1,7 +1,7 @@
 /**
  * Created by Dennis on 27-1-2017.
  */
-/*global d3*/
+/*global d3, topojson*/
 var typeName = ["City part", "District", "Neighborhood"];
 var objectKey = ["stadsdeel", "wijken", "buurten"];
 var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
@@ -15,7 +15,9 @@ function TopoJsonData() {
     var _data = null;
     this.get = function (callback) {
         d3.json('combined.topojson', function (error, resp) {
-            if (error) throw error;
+            if (error) {
+                throw error;
+            }
             console.log("Loaded combined.topojson");
             _data = resp;
             callback();
@@ -98,15 +100,14 @@ function TopoJsonData() {
         if (newSelectedLevel !== selectedLevel || newSelected !== selected
         //|| (newSelected !== null && selected !== null && newSelected.properties !== selected.properties)
         ) {
-            console.log("fireSelectChange(source=" + source + ", level=" + newSelectedLevel + ", newSelected=");
-            console.log(newSelected);
+            console.log("fireSelectChange(source=" + source + ", level=" + newSelectedLevel + ", newSelected=" + newSelected + ")");
             changeListeners.forEach(function (onChange) {
                 onChange(source, newSelected, newSelectedLevel, selected, selectedLevel); //source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel
             });
             selected = newSelected;
             selectedLevel = newSelectedLevel;
         }
-    }
+    };
 }
 
 function loadDatas(callback) {

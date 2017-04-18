@@ -122,6 +122,6 @@ var Chart = function (csx, csy) {
         data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
             parseXY(newSelected, newSelectedLevel);
             redraw();
-        })
+        });
     };
 };

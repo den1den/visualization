@@ -70,14 +70,19 @@ function GeoMap() {
         append.call(this, 2);
 
         data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
-            if (newSelectedLevel < 2) {
-                // meshes[index-1].style("display", "none");
-                // meshes[index].style("display", "inherit");
-
-                if (newSelectedLevel >= 0)
-                    areas[newSelectedLevel].style("display", "none");
-                areas[newSelectedLevel + 1].style("display", "inherit");
+            // if (newSelectedLevel + 1 < areas.length ) {
+            //     areas[newSelectedLevel + 1].style("display", "inherit");
+            // }
+            for (var i = 0; i < areas.length; i++) {
+                if (i === newSelectedLevel + 1 || (newSelectedLevel === 2 && i === areas.length - 1)) {
+                    areas[i].style("display", "inherit");
+                } else {
+                    areas[i].style("display", "none");
+                }
             }
+            //areas[i].style("display", "none");
+            // meshes[index-1].style("display", "none");
+            // meshes[index].style("display", "inherit");
 
             // Zoom te specific area
             if (newSelected == null) {
@@ -134,9 +139,9 @@ function GeoMap() {
         // meshes[1].style("display", "none");
         // meshes[2].style("display", "none");
 
-        areas[0].style("display", "inherit");
-        areas[1].style("display", "none");
-        areas[2].style("display", "none");
+        // areas[0].style("display", "inherit");
+        // areas[1].style("display", "none");
+        // areas[2].style("display", "none");
 
         root.transition()
             .duration(750)
