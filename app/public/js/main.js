@@ -6,12 +6,15 @@
  */
 /*global $,d3*/
 console.log("d3 loaded: " + d3.version);
+var dataTypeX = new DataType(0, {"owner": "all", "source": "total", "agg": "count"}),
+    dataTypeY = new DataType(1, {"owner": "all", "source": "co2", "agg": "avg"});
 
-var x = new DataAxis("#select-x", "#title-x", {"owner": "all", "source": "total", "agg": "count"}),
-    y = new DataAxis("#select-y", "#title-y", {"owner": "all", "source": "co2", "agg": "avg"}),
-    chart = new Chart(x, y),
+var x = new DataTypeSelector("#select-x", dataTypeX),
+    y = new DataTypeSelector("#select-y", dataTypeY),
+    selection = new SelectionTitle("#selection-title"),
+    chart = new Chart("#chart", x, y),
     list = new ListSelector(),
-    map = new GeoMap(),
+    map = new GeoMap("#geo", dataTypeY),
     data = new TopoJsonData();
 
 data.get(function () {

@@ -13,7 +13,7 @@ function ListSelector() {
 
     listButtons.forEach(function (el, i) {
         el.on("click", function () {
-            setFilter(i, -1);
+            resetFilter(i);
         });
     });
 
@@ -26,32 +26,37 @@ function ListSelector() {
         }
     }
 
+    function resetFilter(level){
+        setFilter(level, -1);
+    }
     function setFilter(level, filterLevel, filterValue) {
         var amount = 0;
         setList(level);
-        lists[level].selectAll("li").each(function (d, i) {
-            var el = d3.select(this);
-            if (filterLevel === -1) {
-                el.style("display", "flex");
-            } else {
-                var isShow = d.d.properties[propertyCodeKey[filterLevel]] === filterValue;
-                el.style("display", isShow ? "flex" : "none");
-                amount += isShow;
-            }
-        });
-        console.log("Filterd down to "+amount+" elements");
+        if(level >= 0) {
+            lists[level].selectAll("li").each(function (d, i) {
+                var el = d3.select(this);
+                if (filterLevel === -1) {
+                    el.style("display", "flex");
+                } else {
+                    var isShow = d.d.properties[propertyCodeKey[filterLevel]] === filterValue;
+                    el.style("display", isShow ? "flex" : "none");
+                    amount += isShow;
+                }
+            });
+            console.log("Filterd down to " + amount + " elements");
+        }
         return amount;
     }
 
     function getOnClickFn(d, index) {
         return function () {
-            data.fireSelectChange("list", d, index);
+            selectionChange("ListSelector-li", d, index);
         };
     }
 
     this.bindData = function (data) {
         function append(index) {
-            var features = data.getFeature(index).features;
+            var features = data.getFeatureCollection(index).features;
             features = features
                 .sort(sortByProperty(propertyKey[index]))
                 .map(function (d) {
@@ -83,13 +88,31 @@ function ListSelector() {
         append.call(this, 1);
         append.call(this, 2);
 
-        data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
-            if (oldSelectedLevel !== -1 && oldSelected !== null) {
+        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
+            var newSelected = newSelection.data, newSelectedLevel = newSelection.level;
+            if (previousSelection !== null) {
+                var oldSelected = previousSelection.data, oldSelectedLevel = previousSelection.level;
                 var oldElIndex = oldSelected.properties[propertyCodeKey[oldSelectedLevel]],
                     oldEl = lists[oldSelectedLevel].select("#list-item-" + oldSelectedLevel + "-" + oldElIndex);
                 oldEl.classed("active", false);
                 oldEl.select("div").remove();
             }
+            function centerNode(el, parent) {
+                var current = parent.property("scrollTop");
+                var target = el.property("offsetTop");
+                target = target < 0 ? 0 : target;
+                var interpolate = d3.interpolateNumber(current, target);
+                parent.transition()
+                    .duration(1000)
+                    .tween("centerNode", function () {
+                        var parent = this;
+                        return function (t) {
+                            parent.scrollTop = interpolate(t) - 148;
+                        };
+                    });
+                console.log("interpolating scrollTop of "+parent+" from "+current+" to "+target);
+            }
+
             if (newSelected !== null) {
                 var elIndex = newSelected.properties[propertyCodeKey[newSelectedLevel]];
                 var el = lists[newSelectedLevel].select("#list-item-" + newSelectedLevel + "-" + elIndex);
@@ -105,7 +128,7 @@ function ListSelector() {
                     };
                 } else {
                     onClickBack = function () {
-                        data.fireSelectChange("list", null, -1);
+                        selectionChange("ListSelector-back-root", null, -1);
                         return false;
                     };
                 }
@@ -124,8 +147,11 @@ function ListSelector() {
                             return newSelectedLevel === 1 && d.d.properties.wijken_in_buurt <= 1;
                         });
                 }
+                resetFilter(newSelectedLevel);
+                centerNode(el, lists[newSelectedLevel]);
+            } else {
+                resetFilter(newSelectedLevel);
             }
-            setList(newSelectedLevel);
         });
     };
 }

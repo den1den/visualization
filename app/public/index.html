@@ -14,7 +14,7 @@
 <div class="container">
     <div class="row">
         <div class="col-12">
-            <h1>Den Haag</h1>
+            <h1 id="selection-title"></h1>
         </div>
     </div>
 
@@ -28,7 +28,7 @@
 
         <div class="col-md-3">
             <div class="card card-block">
-                <h4 class="card-title" id="title-y"></h4>
+                <h4 class="card-title" id="select-y-title"></h4>
                 <h6 class="card-title">Vertical axis</h6>
                 <p class="card-text" id="select-y"></p>
             </div>
@@ -80,8 +80,14 @@
     <!-- graph -->
     <div class="row">
         <div class="col-md-6">
+            <div class="card card-block">
+                <h4 class="card-title" id="select-x-title"></h4>
+                <h6 class="card-title">Horizontal axis</h6>
+                <p class="card-text" id="select-x"></p>
+            </div>
+        </div>
+        <div class="col-md-6">
             <svg id="chart"></svg>
-
             <div id="chart-legend">
                 <table class="table table-years">
                     <thead>
@@ -94,17 +100,6 @@
                     </tr>
                     </thead>
                 </table>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card card-block">
-                        <h4 class="card-title" id="title-x"></h4>
-                        <h6 class="card-title">Horizontal axis</h6>
-                        <p class="card-text" id="select-x"></p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -121,11 +116,14 @@
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src="https://d3js.org/topojson.v2.min.js"></script>
 <script src="js/util.js"></script>
+<script src="js/selection.js"></script>
 <script src="js/data.js"></script>
 <script src="js/components/chart.js"></script>
 <script src="js/components/slider.js"></script>
 <script src="js/components/geo.js"></script>
 <script src="js/components/list.js"></script>
+<script src="js/components/data_type_selector.js"></script>
+<script src="js/components/titles.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

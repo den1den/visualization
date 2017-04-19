@@ -1,7 +1,7 @@
 /**
  * Created by Dennis on 27-1-2017.
  */
-/*global d3, topojson*/
+/*global d3, topojson, neq, dataTypeChange*/
 var typeName = ["City part", "District", "Neighborhood"];
 var objectKey = ["stadsdeel", "wijken", "buurten"];
 var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
@@ -26,11 +26,11 @@ function TopoJsonData() {
     this.getMesh = function (index) {
         return topojson.mesh(_data, _data.objects[objectKey[index]], neq);
     };
-    this.getFeature = function (index) {
+    this.getFeatureCollection = function (index) {
         return topojson.feature(_data, _data.objects[objectKey[index]]);
     };
     this.withAggregate = function (feature, index) {
-        if (index == 2) {
+        if (index === 2) {
             return feature;
         }
         var new_data = [],
@@ -49,7 +49,7 @@ function TopoJsonData() {
             var key = feature.properties[propertyCodeKey[index]];
             datagroup.geometries.forEach(function (g) {
                 var k = g.properties[propertyCodeKey[index]];
-                if (k == key) {
+                if (k === key) {
                     new_data.push(g.properties.data);
                 }
             });
@@ -88,26 +88,6 @@ function TopoJsonData() {
         }
         return new_data;
     }
-
-    var changeListeners = [];
-    this.addChangeListener = function (onChange) {
-        changeListeners.push(onChange);
-    };
-
-    var selected = null;
-    var selectedLevel = -1;
-    this.fireSelectChange = function (source, newSelected, newSelectedLevel) {
-        if (newSelectedLevel !== selectedLevel || newSelected !== selected
-        //|| (newSelected !== null && selected !== null && newSelected.properties !== selected.properties)
-        ) {
-            console.log("fireSelectChange(source=" + source + ", level=" + newSelectedLevel + ", newSelected=" + newSelected + ")");
-            changeListeners.forEach(function (onChange) {
-                onChange(source, newSelected, newSelectedLevel, selected, selectedLevel); //source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel
-            });
-            selected = newSelected;
-            selectedLevel = newSelectedLevel;
-        }
-    };
 }
 
 function loadDatas(callback) {
@@ -116,39 +96,11 @@ function loadDatas(callback) {
         .defer(d3.json, '/wijken.topojson')
         .defer(d3.json, '/buurten-simple.topojson')
         .awaitAll(function (error, datas) {
-            if (error) throw error;
+            if (error) { throw error; }
             console.log("Data loaded");
             callback(datas);
         });
 }
-function loadCsv(callback) {
-    d3.request('/buurten.topojson')
-        .mimeType("text/csv")
-        .response(function (xhr) {
-            return d3.dsvFormat(";").parse(xhr.responseText, function (d) {
-                    d2 = {};
-                    for (var key in d) {
-                        if (d.hasOwnProperty(key)) {
-                            if (key == 'Jaar') {
-                                d2[key] = new Date(+d[key], 0, 1);
-                            } else if (key == 'Buurt') {
-                                d2[key] = d[key]
-                            } else {
-                                d2[key] = +d[key]
-                            }
-                        }
-                    }
-                    return d2;
-                }
-            );
-        })
-        .get(function (error, data) {
-            if (error) throw error;
-            console.log("Data loaded");
-            callback(data);
-        });
-}
-
 
 var collum_names_nl = [
         "Totaal aantal Vastgoedobjecten", "Totaal aantal Vastgoedobjecten Elektra", "Totaal aantal Vastgoedobjecten Gas",
@@ -196,18 +148,48 @@ var collum_names_nl = [
 
         "Real estates with other power production", // 29 other
         "Other production (kWh)"
+    ],
+    collum_tags = [
+        "real_estates",
+        "real_estates_electricity",
+        "real_estates_gas",
+        "co2",
+        "power",
+        "gas",
+        "co2_avg",
+        "power_avg",
+        "gas_avg",
+        "real_estates_private",
+        "real_estates_private_electricity",
+        "real_estates_private_gas",
+        "co2_private",
+        "power_private",
+        "gas_private",
+        "co2_private_avg",
+        "power_private_avg",
+        "gas_private_avg",
+        "real_estates_commercial",
+        "real_estates_commercial_electricity",
+        "real_estates_commercial_gas",
+        "co2_commercial",
+        "power_commercial",
+        "gas_commercial",
+        "co2_commercial_avg",
+        "power_commercial_avg",
+        "gas_commercial_avg",
+        "real_estates_solar",
+        "solar",
+        "real_estates_other",
+        "other"
     ];
 
-function DataIndexHelper(defaults){
+function DataType(xy, defaults){
     var _filter_type,
         _source,
         _aggr,
-        index;
+        _index;
 
-    reset();
-
-    this.setOwner = setOwner;
-    function setOwner(filter_type) {
+    this.setOwner = function (filter_type) {
         if (filter_type === "all" || filter_type === "total") {
             _filter_type = 0;
         } else if (filter_type === "private") {
@@ -217,8 +199,8 @@ function DataIndexHelper(defaults){
         } else {
             throw new Error("setOner(" + filter_type + ") not possible");
         }
-        index = -1;
-    }
+        _index = -1;
+    };
 
     this.setSource = setSource;
     function setSource(source) {
@@ -235,7 +217,7 @@ function DataIndexHelper(defaults){
         } else {
             throw new Error("setSource(" + source + ") not possible");
         }
-        index = -1;
+        _index = -1;
     }
 
     this.setAgg = setAgg;
@@ -249,7 +231,7 @@ function DataIndexHelper(defaults){
         } else {
             throw new Error("setAgg(" + aggr + ") not possible");
         }
-        index = -1;
+        _index = -1;
     }
 
     function constructIndex() {
@@ -271,42 +253,65 @@ function DataIndexHelper(defaults){
         throw new Error("No valid config _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
     }
 
-    this.getIndex = getIndex;
-    function getIndex() {
-        if (index === -1) {
-            index = constructIndex();
-            console.log("getIndex, index=" + index + ", _source=" + _source + ", _filter_type=" + _filter_type + ", _aggr=" + _aggr);
-        }
-        return index;
+    function getType(){
+        return "data-"+xy;
     }
+    this.getCSType = getType;
 
-    this.reset = reset;
-    function reset() {
+    function getIndex() {
+        if (_index === -1) {
+            _index = constructIndex();
+            console.log("getIndex(_source=" + _source + ", _filter_type=" + _filter_type + ", _aggr=" + _aggr+") = " + _index);
+        }
+        return _index;
+    }
+    this.getIndex = getIndex;
+
+    this.reset = function () {
         if (defaults) {
-            setOwner(defaults.owner);
+            this.setOwner(defaults.owner);
             setSource(defaults.source);
             setAgg(defaults.agg);
         } else {
             _filter_type = -1;
             _source = -1;
             _aggr = -1;
-            index = -1;
+            _index = -1;
         }
-    }
+    };
+    this.reset();
 
-    this.getValue = function(data) {
+    this.getDataValue = function(data) {
         var index = getIndex(),
             val;
-        if (_aggr === 6) {
-            val = data[getDataIndex(index - 3)] / data[getDataIndex(index - 6)]; //avg
+        if(index === -2){
+            // eval function
+            val = (function () {
+                "use strict";
+                console.log("_evalString="+_evalString + " =?> "+ eval(_evalString)); //TODO
+                var FEATURES = data;
+                return eval(_evalString);
+            })();
         } else {
-            val = data[getDataIndex(index)];
+            if (_aggr === 6) {
+                val = data[getDataIndex(index - 3)] / data[getDataIndex(index - 6)]; //avg
+            } else {
+                val = data[getDataIndex(index)];
+            }
         }
         if (!val) {
             throw new Error("Strange value on " + collum_names[index]);
         }
         return val;
-    }
+    };
+
+    this.getTag = function(){
+        return "[" + collum_tags[getIndex()] + "]";
+    };
+
+    this.getIndexFromTag = function (tag) {
+        return collum_tags.indexOf(tag);
+    };
 
     function getDataIndex(index) {
         if (index >= 6) {
@@ -314,187 +319,19 @@ function DataIndexHelper(defaults){
         }
         return index;
     }
-}
 
-function Axis(controlSelect, titleSelect, defaults) {
-    var AXIS = this,
-        axisTitle = d3.select(titleSelect),
-        root = d3.select(controlSelect),
-        dataSelector = new DataIndexHelper(defaults);
-
-    AXIS.onChange = null;
-    function changed() {
-        updateAxisTitle();
-        if (AXIS.onChange) {
-            AXIS.onChange();
-        }
-    }
-    changed();
-
-    this.getValue = dataSelector.getValue;
-
-    function updateAxisTitle() {
-        var index = dataSelector.getIndex();
-        if (index === -1) {
-            axisTitle.html("None set").style("color", "#999");
-        } else {
-            axisTitle.html(collum_names[index]).style("color", "#000");
-        }
-    }
-
-    // HTML
-    function getDropdownID(name) {
-        return controlSelect.substring(1) + "-dropdown-" + name.split(" ")[0].toLowerCase();
-    }
-
-    this.ToggleMenu = function(options, onChange) {
-        var buttons = root.append("div")
-            .attr("data-toggle", "buttons");
-        options.forEach(function (o) {
-            buttons.append("label")
-                .attr("class", "btn btn-primary")
-                .on("click", function () {
-                    setValue(o[1]);
-                })
-                .html(o[0])
-                .append("input")
-                .attr("type", "radio");
-        });
-
-        var value = null;
-        this.getLastValue = function () {
-            return value;
-        };
-        function setValue(newVal) {
-            value = newVal;
-            onChange(newVal);
-        }
-
-        this.setValue = setValue;
-    };
-    this.DropDownMenu = function(name, values, onChange, visible) {
-        var _visible = visible;
-        var dropdown = root.append("div")
-            .attr("class", "dropdown")
-            .attr("id", getDropdownID(name));
-        dropdown.append("button")
-            .attr("class", "btn btn-secondary dropdown-toggle")
-            .attr("type", "button")
-            .attr("data-toggle", "dropdown")
-            .html(name);
-        var dropdownOptions = dropdown.append("div")
-            .attr("class", "dropdown-menu");
-        values.forEach(function (v) {
-            dropdownOptions.append("button")
-                .attr("class", "dropdown-item")
-                .html(v[0])
-                .on("click", function () {
-                    setValue(v[1]);
-                });
-        });
-        this.show = function () {
-            var r = !_visible;
-            dropdown.style("display", "inherit");
-            _visible = true;
-            return r;
-        };
-        this.hide = function () {
-            var r = _visible;
-            dropdown.style("display", "none");
-            _visible = false;
-            return r;
-        };
-        if (!_visible) {
-            this.hide();
-        }
-        var value = null;
-        this.getLastValue = function () {
-            return value;
-        };
-        function setValue(newVal) {
-            value = newVal;
-            onChange(newVal);
-        }
-
-        this.setValue = setValue;
+    var _evalString = null;
+    this.setFunction = function (evalString) {
+        _evalString = evalString;
+        _index = -2;
     };
 }
 
-// function YearAxis(controlSelect, titleSelect, defaults) {
-//     Axis.call(this, controlSelect, titleSelect, defaults);
-//     var AXIS = this;
-//
-//     var menu = new AXIS.TogggleMenu(
-//         [["Households", 0], ["Years", 1]],
-//         function (v) {
-//             console.log("Xaxis=" + v);
-//             if (v === 0) {
-//                 AXIS.setAgg("count");
-//                 AXIS.setSource("total");
-//                 AXIS.setOwner("all");
-//                 AXIS.updateAxisTitle();
-//                 hfilter.show();
-//             } else {
-//                 hfilter.hide();
-//
-//             }
-//         }),
-//         hfilter = new AXIS.DropdownMenu(
-//             "Filter",
-//             householdfilter,
-//             function (v) {
-//                 AXIS.setSource(v);
-//                 AXIS.updateAxisTitle();
-//             });
-// }
+var interval = (function () {
+    var years = [];
+    return {
+        a: function (b) {
 
-function DataAxis(controlSelect, titleSelect, defaults) {
-    Axis.call(this, controlSelect, titleSelect, defaults);
-    var AXIS = this;
-
-    var avg = false,
-        dr0 = new AXIS.DropDownMenu("Data",
-            [["Real estate", 0], ["Measurements", 1]],
-            function (v) {
-                console.log("Type=" + v);
-                var changed;
-                if (v === 0) {
-                    changed = dr1.show();
-                    dr2.hide();
-                } else {
-                    changed = dr2.show();
-                    dr1.hide();
-                }
-                if (changed) {
-                    AXIS.reset();
-                }
-            }, true),
-        dr1 = new AXIS.DropDownMenu("Filter",
-            householdfilter,
-            function (v) {
-                console.log("Filter1=" + v);
-                //agg == 0
-                AXIS.dataSelector.setAgg("count");
-                AXIS.dataSelector.setSource(v);
-                AXIS.dataSelector.setOwner("all");
-                AXIS.changed();
-            }, false),
-        dr2 = new AXIS.DropDownMenu("Energy type",
-            [["CO<sub>2</sub>", "co2"], ["Electricity", "electricity"], ["Gas", "gas"], ["Solar", "solar"], ["Other", "other"]],
-            function (v) {
-                console.log("Energy type=" + v);
-                dr3.setValue("all");
-                dr3.show();
-            }, false),
-        dr3 = new AXIS.DropDownMenu("Filter",
-            [["All", "all"], ["Private", "private"], ["Commercial", "commercial"]],
-            function (v) {
-                console.log("Filter type=" + v);
-
-                AXIS.setAgg("value");
-                AXIS.setSource(dr2.getLastValue());
-                AXIS.setOwner(v);
-                AXIS.changed();
-            }, false);
-
-}
+        }
+    };
+})();

@@ -1,11 +1,11 @@
 /**
  * Created by Dennis on 28-1-2017.
  */
-/*global d3*/
-function GeoMap() {
-    var svg = d3.select("#geo");
+/*global d3,$*/
+function GeoMap(rootId, dataType) {
+    var svg = d3.select(rootId);
 
-    var $svg = $("#geo");
+    var $svg = $(rootId);
     var width = $svg.width(),
         height = $svg.height();
 
@@ -23,7 +23,7 @@ function GeoMap() {
         .attr("width", width)
         .attr("height", height)
         .on("click", function () {
-            data.fireSelectChange("geo", null, -1);
+            selectionChange("GeoMap-background", null, -1);
         });
     var root = svg.append("g");
 
@@ -49,27 +49,76 @@ function GeoMap() {
 
     var selected = root.append("g").attr("id", "selected-area");
 
+    function ColorFunction(min, max) {
+        this.min = min;
+        this.max = max;
+    }
+    ColorFunction.prototype.getColorFunction = function () {
+        var colorFunction = this;
+        return function (d) {
+            var val = getValue(d);
+            var val01 = (val - colorFunction.min) / (colorFunction.max - colorFunction.min);
+            return d3.hsl(0, val01, 0.5);
+        };
+    };
+    ColorFunction.prototype.addjustBounds = function (d) {
+        var val = getValue(d);
+        if (isNaN(this.min) || val < this.min) {
+            this.min = val;
+        }
+        if (isNaN(this.max) || val > this.max) {
+            this.max = val;
+        }
+    };
+    ColorFunction.prototype.toString = function () {
+        return "ColorFunction(min="+this.min+", max="+this.max+")";
+    };
+    function getValue(dataElement){
+        return dataType.getDataValue(dataElement.properties.data[2011]);
+    }
+
+    // single colorFunction
+    var colorFunction = new ColorFunction();
+
     this.bindData = function (data) {
         //init
         initZoom(data.getMesh(2));
         function append(index) {
-            var features = data.getFeature(index).features,
+            var featureCollection,
                 mesh = data.getMesh(index),
                 clickedFn = getOnClickedFn(index);
+            featureCollection = data.getFeatureCollection(index);
+            featureCollection.features.map(function (f) {
+                return data.withAggregate(f, index);
+            });
+
+            // multiple colorFunctions:
+            // var colorFunction = new ColorFunction();
+            featureCollection.features.forEach(function(f){
+                colorFunction.addjustBounds(f);
+            });
+
+            areas[index].selectAll("path").remove();
             areas[index].selectAll("path")
-                .data(features).enter()
-                .append("path").attr("d", path)
+                .data(featureCollection.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .style("fill", colorFunction.getColorFunction())
                 .on("click", clickedFn);
             // meshes[index].append("path")
             //     .datum(mesh)
             //     .attr("d", path);
         }
 
-        append.call(this, 0);
-        append.call(this, 1);
-        append.call(this, 2);
+        append(0);
+        append(1);
+        append(2);
 
-        data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
+        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
+            var newSelected = newSelection.data;
+            var newSelectedLevel = newSelection.level;
+
             // if (newSelectedLevel + 1 < areas.length ) {
             //     areas[newSelectedLevel + 1].style("display", "inherit");
             // }
@@ -85,7 +134,7 @@ function GeoMap() {
             // meshes[index].style("display", "inherit");
 
             // Zoom te specific area
-            if (newSelected == null) {
+            if (newSelected === null) {
                 resetZoom();
             } else {
                 var bounds = path.bounds(newSelected),
@@ -100,22 +149,21 @@ function GeoMap() {
                     .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
             }
 
-            // Set selected Text
-            var selectedText;
+            // Add outline to selected path
             selected.selectAll("path").remove();
-            if (newSelectedLevel === -1) {
-                selectedText = "Den Haag (city)";
-            } else if (newSelected === null) {
-                selectedText = "None";
-            } else {
-                selectedText = newSelected.properties[propertyKey[newSelectedLevel]] + " (" + typeName[newSelectedLevel].toLowerCase() + ")";
-            }
             selected.selectAll("path")
-                .data([newSelected]).enter()
+                .data([newSelected])
+                .enter()
                 .append("path")
                 .attr("d", path);
-            d3.select("#selected-title").text(selectedText);
-        })
+        });
+
+        SelectionManager.addChangeListener(["data-1"], function (newSelection, previousSelection) {
+            colorFunction = new ColorFunction();
+            append(0);
+            append(1);
+            append(2);
+        });
     };
 
     function initZoom(hasBounds) {
@@ -151,7 +199,7 @@ function GeoMap() {
 
     function getOnClickedFn(index) {
         return function (d) {
-            data.fireSelectChange("geo", d, index); // also send inex?
+            selectionChange("GeoMap-path", d, index); // also send inex?
         };
     }
 }

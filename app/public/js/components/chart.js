@@ -1,11 +1,11 @@
 /**
  * Created by Dennis on 29-1-2017.
  */
-/*global d3*/
+/*global d3,$*/
 
-var Chart = function (csx, csy) {
-    var $svg = $("#chart");
-    var svg = d3.select("#chart");
+var Chart = function (rootId, csx, csy) {
+    var $svg = $(rootId);
+    var svg = d3.select(rootId);
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50};
     var width = $svg.width() - margin.left - margin.right - 10;
@@ -17,9 +17,12 @@ var Chart = function (csx, csy) {
         .attr("height", height)
         .attr("x", margin.left).attr("y", margin.top);
 
-
-    var xAxis = d3.scaleLinear().range([0, width]);
-    var yAxis = d3.scaleLinear().range([height, 0]);
+    var xAxis, yAxis;
+    function setXY() {
+        xAxis = d3.scaleLinear().range([0, width]);
+        yAxis = d3.scaleLinear().range([height, 0]);
+    }
+    setXY();
 
     svg
         .attr("width", width + margin.left + margin.right)
@@ -29,22 +32,16 @@ var Chart = function (csx, csy) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     function getX(d) {
-        return +csx.getValue(d[1]);
+        return +csx.getValueFromData(d[1]);
     }
 
     function getY(d) {
-        return +csy.getValue(d[1]);
+        return +csy.getValueFromData(d[1]);
     }
 
     function getYear(d) {
         return d[0];
     }
-
-    var getXP = wrap(xAxis, getX);
-    var getYP = wrap(yAxis, getY);
-
-    csx.onChange = redraw;
-    csy.onChange = redraw;
 
     d3.select("#chart-legend .table-years").selectAll("th")
         .style("background-color", function (d, i) {
@@ -75,7 +72,14 @@ var Chart = function (csx, csy) {
     }
 
     function redraw() {
-        var valueLine = d3.line().x(getXP).y(getYP);
+        function x(d) {
+            return xAxis(getX(d));
+        }
+        function y(d) {
+            return yAxis(getY(d));
+        }
+        var valueLine = d3.line()
+            .x(x).y(y);
 
         // Scale the range of the data
         xAxis.domain(setDomain(d3.extent(chartData, getX)));
@@ -97,10 +101,13 @@ var Chart = function (csx, csy) {
             .enter()
             .append("circle")
             .attr("r", 10)
-            .attr("cx", getXP)
-            .attr("cy", getYP)
+            .attr("cx", x)
+            .attr("cy", y)
             .style("fill", function (d) {
                 return yearColors[getYear(d) - 2011];
+            })
+            .append("svg:title").text(function (d) {
+                return "year = "+d[0]+", data[0]="+d[1][0];
             });
 
         // Add the X Axis
@@ -119,9 +126,15 @@ var Chart = function (csx, csy) {
         parseXY(null, -1);
         redraw();
 
-        data.addChangeListener(function (source, newSelected, newSelectedLevel, oldSelected, oldSelectedLevel) {
-            parseXY(newSelected, newSelectedLevel);
+        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
+            parseXY(newSelection.data, newSelection.level);
+            redraw();
+        });
+
+        SelectionManager.addChangeListener(["data-0", "data-1"], function (newSelection, previousSelection) {
             redraw();
         });
     };
+
+    //TODO; https://bl.ocks.org/mbostock/3885304
 };
