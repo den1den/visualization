@@ -125,17 +125,20 @@ function FunctionWriter(root, title, onChange) {
             .attr("id", "function-writer-"+FunctionWriter.fncount)
         .on("input", function () {
             setStatic(false);
-            var evalString = parseEvalString(this.value);
-            if(evalString) {
+            var r = parseEvalString(this.value);
+            if(typeof r === "string") {
                 setSuccess(true);
-                onChange(evalString);
+                onChange(r);
+            } else if(r !== null) {
+                setWarning("Could not find parameters: "+r);
             } else {
-                setWarning(true);
+                setDanger(true);
             }
         })
         .on("click", function () {
             setStatic(false);
-        });
+        }),
+        feedbackTxt = group.append("div").attr("class", "form-control-feedback");
     group.append("small").attr("class", "form-text text-muted").text("Help text");
 
     function parseEvalString(input) {
@@ -174,7 +177,7 @@ function FunctionWriter(root, title, onChange) {
         });
         if(inValidVars.length > 0){
             console.log("parseEvalString: could not find vars: " + inValidVars.toString());
-            return null;
+            return inValidVars;
         }
         // append evalString
         output += "\"" + evalString + "\";";
@@ -200,23 +203,39 @@ function FunctionWriter(root, title, onChange) {
         if(s === true){
             setWarning(false);
             setSuccess(false);
+            setDanger(false);
         }
-    }
-
-    function setWarning(w){
-        if(w === true){
-            setSuccess(false);
-        }
-        group.classed("has-warning", w);
-        input.classed("form-control-warning", w);
     }
 
     function setSuccess(s){
         if(s === true){
             setWarning(false);
+            setDanger(false);
         }
         group.classed("has-success", s);
         input.classed("form-control-success", s);
+    }
+
+    function setWarning(w){
+        if(w === false) {
+            feedbackTxt.style("display", "none");
+        } else {
+            setSuccess(false);
+            setDanger(false);
+            feedbackTxt.text(w);
+            feedbackTxt.style("display", "block");
+        }
+        group.classed("has-warning", !!w);
+        input.classed("form-control-warning", !!w);
+    }
+
+    function setDanger(d){
+        if(d === true){
+            setSuccess(false);
+            setWarning(false);
+        }
+        group.classed("has-danger", d);
+        input.classed("form-control-danger", d);
     }
 
     FunctionWriter.fncount++;
