@@ -116,7 +116,7 @@ function GeoMap(rootId, dataType) {
         append(2);
 
         SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            var newSelected = newSelection.data;
+            var newSelected = newSelection.change.data;
             var newSelectedLevel = newSelection.level;
 
             // if (newSelectedLevel + 1 < areas.length ) {

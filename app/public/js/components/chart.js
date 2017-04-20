@@ -127,7 +127,7 @@ var Chart = function (rootId, csx, csy) {
         redraw();
 
         SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            parseXY(newSelection.data, newSelection.level);
+            parseXY(newSelection.change.data, newSelection.level);
             redraw();
         });
 

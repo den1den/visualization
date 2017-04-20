@@ -89,7 +89,7 @@ function ListSelector() {
         append.call(this, 2);
 
         SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            var newSelected = newSelection.data, newSelectedLevel = newSelection.level;
+            var newSelected = newSelection.change.data, newSelectedLevel = newSelection.change.level;
             if (previousSelection !== null) {
                 var oldSelected = previousSelection.data, oldSelectedLevel = previousSelection.level;
                 var oldElIndex = oldSelected.properties[propertyCodeKey[oldSelectedLevel]],

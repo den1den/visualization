@@ -20,16 +20,16 @@ function SelectionTitle(rootId) {
     el.text("Den Haag (city)");
 
     SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-        setTitle(newSelection);
+        setTitle(newSelection.data);
     });
-    function setTitle(newSelection){
+    function setTitle(dataType){
         var selectedText;
-        if (newSelection === null) {
+        if (dataType === null) {
             selectedText = "Nothing selected";
-        } else if (newSelection.data === null) {
+        } else if (dataType.data === null) {
             selectedText = "Den Haag (city)";
         } else {
-            selectedText = newSelection.data.properties[propertyKey[newSelection.level]] + " (" + typeName[newSelection.level].toLowerCase() + ")";
+            selectedText = dataType.data.properties[propertyKey[dataType.level]] + " (" + typeName[dataType.level].toLowerCase() + ")";
         }
         el.text(selectedText);
     }

@@ -1,7 +1,7 @@
 /**
  * Created by Dennis on 27-1-2017.
  */
-/*global d3, topojson, neq, dataTypeChange*/
+/*global d3,topojson,neq,dataTypeChange,math*/
 var typeName = ["City part", "District", "Neighborhood"];
 var objectKey = ["stadsdeel", "wijken", "buurten"];
 var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
@@ -278,6 +278,7 @@ function DataType(xy, defaults){
             _aggr = -1;
             _index = -1;
         }
+        _evalString = null;
     };
     this.reset();
 
@@ -288,9 +289,11 @@ function DataType(xy, defaults){
             // eval function
             val = (function () {
                 "use strict";
-                console.log("_evalString="+_evalString + " =?> "+ eval(_evalString)); //TODO
                 var FEATURES = data;
-                return eval(_evalString);
+                var mathEval = eval(_evalString);
+                var result = math.eval(mathEval);
+                console.log("_evalString="+_evalString + " =?> "+ result); //TODO
+                return result;
             })();
         } else {
             if (_aggr === 6) {

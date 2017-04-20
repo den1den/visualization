@@ -2,15 +2,17 @@ function selectionChange(source, newSelected, newSelectedLevel) {
     SelectionManager.fireChange({
         type: "selection",
         source: source,
-        data: newSelected,
-        level: newSelectedLevel
+        change: {
+            data: newSelected,
+            level: newSelectedLevel
+        }
     });
 }
 function dataTypeChange(source, newSelectedDataType) {
     SelectionManager.fireChange({
         type: newSelectedDataType.getCSType(),
         source: source,
-        index: newSelectedDataType.getIndex()
+        change: newSelectedDataType
     });
 }
 var SelectionManager = (function () {
@@ -24,7 +26,7 @@ var SelectionManager = (function () {
     var lastSelections = {};
     return {
         fireChange: function (selectionChange) {
-            console.log("fireSelectionChange(type=" + selectionChange.type + ", source=" + selectionChange.source + ")");
+            console.log("fireSelectionChange(type=" + selectionChange.type + ", source=" + selectionChange.source + ", change=" + selectionChange.change + ")");
             var newSelection = selectionChange;
             var previousSelection = (lastSelections[newSelection.type] ? lastSelections[newSelection.type] : null);
             lastSelections[newSelection.type] = newSelection;

@@ -78,32 +78,44 @@ function FunctionWriter(root, onChange) {
         });
 
     //http://2ality.com/2014/01/eval.html
-    function parseEvalString(evalString, feature) {
-        console.log("parseEvalString(" + evalString + ")");
+    function parseEvalString(input) {
+        console.log("parseEvalString(" + input + ")");
         var vars = [],
             re = /\[[^\]]+]/i,
-            x;
+            x,
+            evalString = input;
         while (true) {
             x = re.exec(evalString);
-            if(x === null){
+            if(x === null) {
                 break;
             }
-            var varName = x[0].substring(1, x[0].length - 1);
+            var pre = evalString.substring(0, x.index),
+                varName = x[0].substring(1, x[0].length - 1),
+                post = evalString.substring(x.index + x[0].length);
             vars.push(varName);
-            evalString = evalString.substring(0, x.index) + varName + evalString.substring(x.index + x[0].length);
+            evalString = pre + "\"+" + varName + "+\"" + post; // replace `pre[x]post` by `pre"+x+"post`
         }
+        /**
+         * Output contains a string that generates the mathematical expressions
+         * Example: var co2 = FEATURES[0]; var y = FEATURES[6]; "" + co2 + " - " + y + "^2"
+         * `eval()` will then return: "9000-4343^2"
+         * Execution math.eval() will then return -18852649 (so actually parsing the ^ as power instead of XOR)
+         */
         var output = "";
+        // set up vars
         vars.filter(function(v, i, a){ return a.indexOf(v) === i;}).forEach(function(vaR){
-            var dataIndex = collum_tags.indexOf(vaR);
-            //var val = feature[dataIndex];
-            var val = "FEATURES["+dataIndex+"]";
-            output += "var "+vaR+" = "+val+"; ";
+            var varDataIndex = collum_tags.indexOf(vaR);
+            var fRef = "FEATURES["+varDataIndex+"]";
+            output += "var " + vaR + " = " + fRef + "; ";
         });
-        output += evalString;
+        // append evalString
+        output += "\"" + evalString + "\";";
         try {
+            // Test if it works
             var FEATURES = [];
             for(var i = 0; i < collum_tags.length; i++) {FEATURES.push(1);}
-            eval(output);
+            var mathString = eval(output);
+            var result = math.eval(mathString);
             return output;
         } catch (e){
             console.log("Could not eval(" + output + ") " + e.message);
