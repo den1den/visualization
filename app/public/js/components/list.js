@@ -21,7 +21,7 @@ function ListSelector() {
         var i = -1;
         while (++i <= 2) {
             var isShow = i === index || (i === 0 && index === -1);
-            lists[i].style("display", isShow ? "flex" : "none");
+            lists[i].style("display", isShow ? "block" : "none");
             listButtons[i].attr("class", "nav-link" + (isShow ? " active" : ""));
         }
     }
@@ -36,10 +36,10 @@ function ListSelector() {
             lists[level].selectAll("li").each(function (d, i) {
                 var el = d3.select(this);
                 if (filterLevel === -1) {
-                    el.style("display", "flex");
+                    el.style("display", "block");
                 } else {
                     var isShow = d.d.properties[propertyCodeKey[filterLevel]] === filterValue;
-                    el.style("display", isShow ? "flex" : "none");
+                    el.style("display", isShow ? "block" : "none");
                     amount += isShow;
                 }
             });
@@ -74,8 +74,7 @@ function ListSelector() {
                 .attr("id", function (d) {
                     return "list-item-" + index + "-" + d.index;
                 })
-                .append("span")
-                .attr("class", "tag tag-default tag-pill float-xs-right")
+                //.append("span").attr("class", "tag tag-default tag-pill")
                 .text(function (d) {
                     return d.name;
                 })
@@ -88,43 +87,50 @@ function ListSelector() {
         append.call(this, 1);
         append.call(this, 2);
 
-        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            var newSelected = newSelection.change.data, newSelectedLevel = newSelection.change.level;
-            if (previousSelection !== null) {
-                var oldSelected = previousSelection.data, oldSelectedLevel = previousSelection.level;
-                var oldElIndex = oldSelected.properties[propertyCodeKey[oldSelectedLevel]],
+        SelectionManager.addChangeListener("selection", function (newChangeObject, previousChangeObject) {
+            var newData = newChangeObject.value.data,
+                newLevel = newChangeObject.value.level;
+            if (previousChangeObject !== null) {
+                var oldData = previousChangeObject.value.data,
+                    oldSelectedLevel = previousChangeObject.value.level;
+                var oldElIndex = oldData.properties[propertyCodeKey[oldSelectedLevel]],
                     oldEl = lists[oldSelectedLevel].select("#list-item-" + oldSelectedLevel + "-" + oldElIndex);
                 oldEl.classed("active", false);
                 oldEl.select("div").remove();
             }
             function centerNode(el, parent) {
-                var current = parent.property("scrollTop");
-                var target = el.property("offsetTop");
-                target = target < 0 ? 0 : target;
-                var interpolate = d3.interpolateNumber(current, target);
-                parent.transition()
-                    .duration(1000)
-                    .tween("centerNode", function () {
-                        var parent = this;
-                        return function (t) {
-                            parent.scrollTop = interpolate(t) - 148;
-                        };
-                    });
-                console.log("interpolating scrollTop of "+parent+" from "+current+" to "+target);
+                if(el.node.scrollIntoView){
+                    el.node.scrollIntoView();
+                } else {
+                    return;
+                    var current = parent.property("scrollTop");
+                    var target = el.property("offsetTop");
+                    target = target < 0 ? 0 : target;
+                    var interpolate = d3.interpolateNumber(current, target);
+                    parent.transition()
+                        .duration(1000)
+                        .tween("centerNode", function () {
+                            var parent = this;
+                            return function (t) {
+                                parent.scrollTop = interpolate(t) - 148;
+                            };
+                        });
+                    console.log("interpolating scrollTop of " + parent + " from " + current + " to " + target);
+                }
             }
 
-            if (newSelected !== null) {
-                var elIndex = newSelected.properties[propertyCodeKey[newSelectedLevel]];
-                var el = lists[newSelectedLevel].select("#list-item-" + newSelectedLevel + "-" + elIndex);
+            if (newData !== null) {
+                var elIndex = newData.properties[propertyCodeKey[newLevel]];
+                var el = lists[newLevel].select("#list-item-" + newLevel + "-" + elIndex);
                 el.classed("active", true);
 
                 var extraButtons = el.append("div")
-                    .classed("force-pull-right", true),
+                    .classed("pull-right", true),
                     onClickBack;
-                if(newSelectedLevel > 0) {
+                if(newLevel > 0) {
                     onClickBack = function () {
-                        var filterOn = newSelected.properties[propertyCodeKey[newSelectedLevel - 1]];
-                        setFilter(newSelectedLevel - 1, newSelectedLevel - 1, filterOn);
+                        var filterOn = newData.properties[propertyCodeKey[newLevel - 1]];
+                        setFilter(newLevel - 1, newLevel - 1, filterOn);
                     };
                 } else {
                     onClickBack = function () {
@@ -136,21 +142,21 @@ function ListSelector() {
                     .classed("btn btn-default btn-secondary btn-sm", true)
                     .html("<i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i>")
                     .on("click", onClickBack);
-                if(newSelectedLevel < 2) {
+                if(newLevel < 2) {
                     extraButtons.append("button")
                         .classed("btn btn-default btn-secondary btn-sm", true)
                         .html("<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>")
                         .on("click", function () {
-                            setFilter(newSelectedLevel + 1, newSelectedLevel, elIndex);
+                            setFilter(newLevel + 1, newLevel, elIndex);
                         })
                         .classed("disabled", function (d) {
-                            return newSelectedLevel === 1 && d.d.properties.wijken_in_buurt <= 1;
+                            return newLevel === 1 && d.d.properties.wijken_in_buurt <= 1;
                         });
                 }
-                resetFilter(newSelectedLevel);
-                centerNode(el, lists[newSelectedLevel]);
+                resetFilter(newLevel);
+                centerNode(el, lists[newLevel]);
             } else {
-                resetFilter(newSelectedLevel);
+                resetFilter(newLevel);
             }
         });
     };

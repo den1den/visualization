@@ -2,7 +2,7 @@ function selectionChange(source, newSelected, newSelectedLevel) {
     SelectionManager.fireChange({
         type: "selection",
         source: source,
-        change: {
+        value: {
             data: newSelected,
             level: newSelectedLevel
         }
@@ -12,7 +12,7 @@ function dataTypeChange(source, newSelectedDataType) {
     SelectionManager.fireChange({
         type: newSelectedDataType.getCSType(),
         source: source,
-        change: newSelectedDataType
+        value: newSelectedDataType
     });
 }
 var SelectionManager = (function () {
@@ -25,17 +25,16 @@ var SelectionManager = (function () {
     }
     var lastSelections = {};
     return {
-        fireChange: function (selectionChange) {
-            console.log("fireSelectionChange(type=" + selectionChange.type + ", source=" + selectionChange.source + ", change=" + selectionChange.change + ")");
-            var newSelection = selectionChange;
-            var previousSelection = (lastSelections[newSelection.type] ? lastSelections[newSelection.type] : null);
-            lastSelections[newSelection.type] = newSelection;
-            getChangeListener(selectionChange.type).forEach(function (onChange) {
-                onChange(newSelection, previousSelection);
+        fireChange: function (newChangeObject) {
+            console.log("fireSelectionChange(type=" + newChangeObject.type + ", source=" + newChangeObject.source + ", change=" + newChangeObject.value + ")");
+            var previousChangeObject = (lastSelections[newChangeObject.type] ? lastSelections[newChangeObject.type] : null);
+            lastSelections[newChangeObject.type] = newChangeObject;
+            getChangeListener(newChangeObject.type).forEach(function (onChange) {
+                onChange(newChangeObject, previousChangeObject);
             });
         },
         addChangeListener: function (type, onChange) {
-            // onChange(newSelection, previousSelection)
+            // onChange(newChangeObject, previousChangeObject)
             var types = (typeof type === "string") ? [type] : type;
             types.forEach(function (type) {
                 getChangeListener(type).push(onChange);

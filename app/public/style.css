@@ -112,3 +112,6 @@ a:hover {
     position: absolute;
     right: 0.5em;
 }
+.function-writer .static{
+    color: gray;
+}

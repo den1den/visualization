@@ -126,12 +126,12 @@ var Chart = function (rootId, csx, csy) {
         parseXY(null, -1);
         redraw();
 
-        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            parseXY(newSelection.change.data, newSelection.level);
+        SelectionManager.addChangeListener("selection", function (newChangeObject, previousChangeObject) {
+            parseXY(newChangeObject.value.data, newChangeObject.value.level);
             redraw();
         });
 
-        SelectionManager.addChangeListener(["data-0", "data-1"], function (newSelection, previousSelection) {
+        SelectionManager.addChangeListener(["data-0", "data-1"], function (newChangeObject, previousChangeObject) {
             redraw();
         });
     };

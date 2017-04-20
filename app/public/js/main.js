@@ -6,7 +6,7 @@
  */
 /*global $,d3*/
 console.log("d3 loaded: " + d3.version);
-var dataTypeX = new DataType(0, {"owner": "all", "source": "total", "agg": "count"}),
+var dataTypeX = new DataType(0, {"owner": "all", "source": "all", "agg": "count"}),
     dataTypeY = new DataType(1, {"owner": "all", "source": "co2", "agg": "avg"});
 
 var x = new DataTypeSelector("#select-x", dataTypeX),

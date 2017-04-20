@@ -6,7 +6,6 @@ var typeName = ["City part", "District", "Neighborhood"];
 var objectKey = ["stadsdeel", "wijken", "buurten"];
 var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
 var propertyCodeKey = ["stadsdeelcode", "wijkcode", "buurtcode"];
-var householdfilter = [["Total", "total"], ["With electricity", "electricity"], ["With gas", "gas"], ["With solar", "solar"], ["With other source", "other"]];
 
 var yearColors = ["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"];
 yearColors = ["#fdd0a2", "#fdae6b", "#fd8d3c", "#e6550d", "#a63603"];
@@ -145,112 +144,134 @@ var collum_names_nl = [
 
         "Real estates with solar energy", // 27 filter=combined, solar energy
         "Solar energy production (kWh)",
+        "Average solar energy production (kWh)", // CUSTOM ADDED
 
-        "Real estates with other power production", // 29 other
-        "Other production (kWh)"
+        "Real estates with other power production", // 30 other
+        "Other production (kWh)",
+        "Average other energy production (kWh)" // CUSTOM ADDED
     ],
     collum_tags = [
-        "real_estates",
-        "real_estates_electricity",
-        "real_estates_gas",
+        "N",
+        "N_elec",
+        "N_gas",
         "co2",
         "power",
         "gas",
-        "co2_avg",
-        "power_avg",
-        "gas_avg",
-        "real_estates_private",
-        "real_estates_private_electricity",
-        "real_estates_private_gas",
+        "co2]/[N",
+        "power]/[N",
+        "gas]/[N",
+        "N_private",
+        "N_private_elec",
+        "N_private_gas",
         "co2_private",
         "power_private",
         "gas_private",
-        "co2_private_avg",
-        "power_private_avg",
-        "gas_private_avg",
-        "real_estates_commercial",
-        "real_estates_commercial_electricity",
-        "real_estates_commercial_gas",
-        "co2_commercial",
-        "power_commercial",
-        "gas_commercial",
-        "co2_commercial_avg",
-        "power_commercial_avg",
-        "gas_commercial_avg",
-        "real_estates_solar",
+        "co2_private]/[N_private",
+        "power_private]/[N_private_elec",
+        "gas_private]/[N_private_gas",
+        "N_comm",
+        "N_comm_elec",
+        "N_comm_gas",
+        "co2_comm",
+        "power_comm",
+        "gas_comm",
+        "co2_comm]/[N_comm",
+        "power_comm]/[N_comm_elec",
+        "gas_comm]/[N_comm_gas",
+        "N_solar",
         "solar",
-        "real_estates_other",
-        "other"
+        "solar]/[N",
+        "N_other",
+        "other",
+        "other]/[N"
     ];
 
 function DataType(xy, defaults){
-    var _filter_type,
-        _source,
-        _aggr,
-        _index;
+    var _owner = null,
+        _source = null,
+        _aggr = null,
+        _index = -1,
+        _evalString = null;
 
-    this.setOwner = function (filter_type) {
-        if (filter_type === "all" || filter_type === "total") {
-            _filter_type = 0;
-        } else if (filter_type === "private") {
-            _filter_type = 9;
-        } else if (filter_type === "commercial") {
-            _filter_type = 18;
-        } else {
-            throw new Error("setOner(" + filter_type + ") not possible");
+    var selected = 1;
+    // selected === 1 => index
+    // selected === 2 => eval string
+
+    this.setDTV = function(owner, source, aggr){
+        var changed = false;
+        if(owner !== null){
+            _owner = owner;
+            changed = true;
+        }
+        if(source !== null){
+            _source = source;
+            changed = true;
+        }
+        if(aggr !== null){
+            _aggr = aggr;
+            changed = true;
         }
         _index = -1;
+        console.log("setDTV to "+toString());
+        return changed;
     };
 
-    this.setSource = setSource;
-    function setSource(source) {
-        if (source === "co2" || source === "total") {
-            _source = 0;
-        } else if (source === "electricity") {
-            _source = 1;
-        } else if (source === "gas") {
-            _source = 2;
-        } else if (source === "solar") {
-            _source = 27;
-        } else if (source === "other") {
-            _source = 29;
+    function constructIndex(){
+        var i;
+        if(_source==="solar" || _source==="other"){
+            if(_owner !== "all"){
+                return false;
+            }
+            i = (_source==="solar" ? 27 : 30); // solar or other
+            if(_aggr==="count"){
+                _index = i;
+            } else if (_aggr==="value") {
+                _index = i + 1;
+            } else if (_aggr==="avg") {
+                _index = i + 2;
+            } else {
+                return false;
+            }
         } else {
-            throw new Error("setSource(" + source + ") not possible");
-        }
-        _index = -1;
-    }
-
-    this.setAgg = setAgg;
-    function setAgg(aggr) {
-        if (aggr === "count" || aggr === "total") {
-            _aggr = 0;
-        } else if (aggr === "value") {
-            _aggr = 3;
-        } else if (aggr === "avg") {
-            _aggr = 6;
-        } else {
-            throw new Error("setAgg(" + aggr + ") not possible");
-        }
-        _index = -1;
-    }
-
-    function constructIndex() {
-        if (_source === 27 || _source === 29) {
-            if (_filter_type === 0) {
-                if (_aggr === 0) {
-                    return _source;
-                } else if (_aggr === 3) {
-                    return _source + 1;
+            if (_owner === "all") {
+                i = 0;
+            } else if (_owner === "private") {
+                i = 9;
+            } else if (_owner === "commercial") {
+                i = 18;
+            } else {
+                return false;
+            }
+            if(_aggr === "count"){
+                if(_source === "all") {
+                    _index = i;
+                } else if(_source === "electricity"){
+                    _index = i + 1;
+                } else if (_source === "gas"){
+                    _index = i + 2;
+                } else {
+                    return false;
+                }
+            } else {
+                if (_aggr === "value") {
+                    i += 3;
+                } else if (_aggr === "avg"){
+                    i += 6;
+                } else {
+                    return false;
+                }
+                if(_source === "co2"){
+                    _index = i;
+                } else if (_source === "electricity"){
+                    _index = i + 1;
+                } else if (_source === "gas"){
+                    _index = i + 2;
+                } else {
+                    return false;
                 }
             }
-        } else if (_source !== -1) {
-            if (_aggr !== -1) {
-                if (_filter_type !== -1) {
-                    return _filter_type + _aggr + _source;
-                }
-            }
         }
-        throw new Error("No valid config _source=" + _source + ", _owner=" + _filter_type + ", _aggr=" + _aggr);
+        return true;
     }
 
     function getType(){
@@ -260,60 +281,81 @@ function DataType(xy, defaults){
 
     function getIndex() {
         if (_index === -1) {
-            _index = constructIndex();
-            console.log("getIndex(_source=" + _source + ", _filter_type=" + _filter_type + ", _aggr=" + _aggr+") = " + _index);
+            if(!constructIndex()){
+                constructIndex();
+                throw new Error("Could not construct index of "+toString());
+            } else {
+                console.log("Constructed index of "+toString());
+            }
+            var index = _index;
         }
         return _index;
     }
     this.getIndex = getIndex;
+    this.setToIndex = function(){
+        selected = 1;
+    };
 
     this.reset = function () {
         if (defaults) {
-            this.setOwner(defaults.owner);
-            setSource(defaults.source);
-            setAgg(defaults.agg);
+            this.setDTV(defaults.owner, defaults.source, defaults.agg);
         } else {
-            _filter_type = -1;
-            _source = -1;
-            _aggr = -1;
+            _owner = null;
+            _source = null;
+            _aggr = null;
             _index = -1;
         }
         _evalString = null;
+        selected = 1;
     };
     this.reset();
 
     this.getDataValue = function(data) {
-        var index = getIndex(),
-            val;
-        if(index === -2){
+        var val;
+        if(selected === 2) {
             // eval function
+            var mathEval;
             val = (function () {
                 "use strict";
                 var FEATURES = data;
-                var mathEval = eval(_evalString);
+                mathEval = eval(_evalString);
                 var result = math.eval(mathEval);
-                console.log("_evalString="+_evalString + " =?> "+ result); //TODO
+                //console.log("_evalString=`" + _evalString + "` = " + result); //TODO
                 return result;
             })();
-        } else {
+            if (isNaN(val)) {
+                throw new Error("Strange value on function " + mathEval);
+            }
+        } else if (selected <= 1) {
+            var index = getIndex();
             if (_aggr === 6) {
-                val = data[getDataIndex(index - 3)] / data[getDataIndex(index - 6)]; //avg
+                var real = data[getDataIndex(index - 3)];
+                if(real < 0){
+                    return null;
+                }
+                var estates = data[getDataIndex(index - 6)];
+                if(estates < 0){
+                    throw new Error("Amount of real estates missing!");
+                }
+                val = real / estates; //avg
             } else {
                 val = data[getDataIndex(index)];
+                if(val < 0){
+                    console.log("Value is missing");
+                    return null;
+                }
             }
-        }
-        if (!val) {
-            throw new Error("Strange value on " + collum_names[index]);
+            if (isNaN(val)) {
+                throw new Error("Strange value on " + collum_names[index]);
+            }
+        } else {
+            throw new Error("Could not get value on unspecified DataType");
         }
         return val;
     };
 
     this.getTag = function(){
         return "[" + collum_tags[getIndex()] + "]";
-    };
-
-    this.getIndexFromTag = function (tag) {
-        return collum_tags.indexOf(tag);
     };
 
     function getDataIndex(index) {
@@ -323,12 +365,26 @@ function DataType(xy, defaults){
         return index;
     }
 
-    var _evalString = null;
     this.setFunction = function (evalString) {
         _evalString = evalString;
-        _index = -2;
+        setToFunction();
     };
+    function setToFunction(){
+        selected = 2;
+    }
+    this.setToFunction = setToFunction;
+
+    function toString() {
+        return "DataType(_source=" + _source + ", _owner=" + _owner + ", _aggr=" + _aggr + ", selected=" + selected + ", _index=" + _index + ", _evalString=" + _evalString + ")";
+    }
 }
+DataType.getDataIndexOfVar = function (vaR) {
+    var i;
+    if((i=collum_tags.indexOf(vaR)) === -1){
+        return false;
+    }
+    return i;
+};
 
 var interval = (function () {
     var years = [];

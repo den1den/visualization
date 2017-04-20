@@ -115,15 +115,15 @@ function GeoMap(rootId, dataType) {
         append(1);
         append(2);
 
-        SelectionManager.addChangeListener("selection", function (newSelection, previousSelection) {
-            var newSelected = newSelection.change.data;
-            var newSelectedLevel = newSelection.level;
+        SelectionManager.addChangeListener("selection", function (newChangeObject, previousChangeObject) {
+            var newData = newChangeObject.value.data;
+            var newLevel = newChangeObject.value.level;
 
             // if (newSelectedLevel + 1 < areas.length ) {
             //     areas[newSelectedLevel + 1].style("display", "inherit");
             // }
             for (var i = 0; i < areas.length; i++) {
-                if (i === newSelectedLevel + 1 || (newSelectedLevel === 2 && i === areas.length - 1)) {
+                if (i === newLevel + 1 || (newLevel === 2 && i === areas.length - 1)) {
                     areas[i].style("display", "inherit");
                 } else {
                     areas[i].style("display", "none");
@@ -134,10 +134,10 @@ function GeoMap(rootId, dataType) {
             // meshes[index].style("display", "inherit");
 
             // Zoom te specific area
-            if (newSelected === null) {
+            if (newData === null) {
                 resetZoom();
             } else {
-                var bounds = path.bounds(newSelected),
+                var bounds = path.bounds(newData),
                     dx = bounds[1][0] - bounds[0][0],
                     dy = bounds[1][1] - bounds[0][1],
                     x = (bounds[0][0] + bounds[1][0]) / 2,
@@ -152,13 +152,13 @@ function GeoMap(rootId, dataType) {
             // Add outline to selected path
             selected.selectAll("path").remove();
             selected.selectAll("path")
-                .data([newSelected])
+                .data([newData])
                 .enter()
                 .append("path")
                 .attr("d", path);
         });
 
-        SelectionManager.addChangeListener(["data-1"], function (newSelection, previousSelection) {
+        SelectionManager.addChangeListener(["data-1"], function (newChangeObject, previousChangeObject) {
             colorFunction = new ColorFunction();
             append(0);
             append(1);

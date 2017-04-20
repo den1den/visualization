@@ -1,83 +1,143 @@
 /*global d3,SelectionManager,dataTypeChange*/
 /*global DataType,DataTypeTitle,householdfilter*/
+var filterVals = [
+    {title: "All", value: "all"}, {title: "Private", value: "private"}, {title: "Commercial", value: "commercial"}
+];
 function DataTypeSelector(rootId, dataType) {
     var root = d3.select(rootId),
-        title = new DataTypeTitle(rootId + "-title", dataType),
-        functionEval;
+        title = new DataTypeTitle(rootId + "-title", dataType);
+    this.getValueFromData = dataType.getDataValue;
 
-    function commitValueChange(){
+    function commitSelectionValueChange(){
+        functionEval.setEvalString(dataType.getTag());
+        dataTypeChange("DataTypeSelector", dataType);
+    }
+
+    function commitInputValueChange(){
         dataTypeChange("DataTypeSelector", dataType);
     }
 
     // Construct the elements HTML
-    (function() {
-        var avg = false,
-            dr0 = new DropDownMenu(root, "Data",
-                [["Real estate", 0], ["Measurements", 1]],
-                function (v) {
-                    var changed;
-                    if (v === 0) {
-                        changed = dr1.show();
-                        dr2.hide();
-                    } else {
-                        changed = dr2.show();
-                        dr1.hide();
-                    }
-                    if (changed) {
-                        dataType.reset();
-                    }
-                }, true),
-            dr1 = new DropDownMenu(root, "Filter",
-                householdfilter,
-                function (v) {
-                    //agg == 0
-                    dataType.setAgg("count");
-                    dataType.setSource(v);
-                    dataType.setOwner("all");
+    var avg = false,
+        dr0 = new DropDownMenu(root,
+            "Data",
+            [{title: "Real estate", value: 0}, {title: "Measurements", value: 1}],
+            function (v) {
+                var changed;
+                if (v === 0) {
+                    changed = realEstateSource.show();
+                    energySource.hide();
+                    selectAvg.hide();
+                    energyFilter.hide();
+                } else {
+                    changed = energySource.show();
+                    selectAvg.show();
+                    realEstateSource.hide();
+                    realEstateFilter.hide();
+                }
+                if (changed) {
+                    dataType.reset();
+                }
+            },
+            true),
+        realEstateSource = new DropDownMenu(root,
+            "Type",
+            [
+                {title: "All", value: "all"}, {title: "With electricity", value: "electricity"}, {title: "With gas", value: "gas"}, {title: "With solar", value: "solar"}, {title: "With other source", value: "other"}
+            ],
+            function (v) {
+                if (v === "all" || v === "electricity" || v === "gas") {
+                    // keep owner
+                    dataType.setDTV(null, v, "count");
+                    realEstateFilter.show();
+                } else {
+                    // set owner to "all"
+                    dataType.setDTV("all", v, "count");
+                    realEstateFilter.hide();
+                    realEstateFilter.setIndex(0);
+                }
 
-                    functionEval.setEvalString(dataType.getTag());
-                    commitValueChange();
-                }, false),
-            dr2 = new DropDownMenu(root, "Energy type",
-                [["CO<sub>2</sub>", "co2"], ["Electricity", "electricity"], ["Gas", "gas"], ["Solar", "solar"], ["Other", "other"]],
-                function (v) {
-                    dr3.setValue("all");
-                    if(v === "solar" || v === "other"){
-                        dr3.hide();
-                    } else {
-                        dr3.show();
-                    }
-                }, false),
-            dr3 = new DropDownMenu(root, "Filter",
-                [["All", "all"], ["Private", "private"], ["Commercial", "commercial"]],
-                function (v) {
-                    dataType.setAgg("value");
-                    dataType.setSource(dr2.getLastValue());
-                    dataType.setOwner(v);
+                commitSelectionValueChange();
+            },
+            false),
+        realEstateFilter = new DropDownMenu(root,
+            "Filter",
+            filterVals,
+            function(v){
+                dataType.setDTV(v, null, null);
 
-                    functionEval.setEvalString(dataType.getTag());
-                    commitValueChange();
-                }, false);
-        functionEval = new FunctionWriter(root, function (v) {
+                commitSelectionValueChange();
+            },
+            false
+        ),
+        selectAvg = new SelectionBox(root,
+            "Average", //
+            false,
+            function (v) {
+                dataType.setDTV(null, null, (v ? "avg" : "value"));
+                if(energySource.isChanged()){
+                    commitSelectionValueChange();
+                }
+            },
+            false
+        ),
+        energySource = new DropDownMenu(root,
+            "Energy type",
+            [
+                {title: "CO<sub>2</sub>", value: "co2"}, {title: "Electricity", value: "electricity"}, {title: "Gas", value: "gas"}, {title: "Solar", value: "solar"}, {title: "Other", value: "other"}
+            ],
+            function (v) {
+                energyFilter.setIndex(0);
+                if(v === "solar" || v === "other"){
+                    energyFilter.hide();
+                } else {
+                    energyFilter.show();
+                }
+                dataType.setDTV(null, v, null);
+            },
+            false),
+        energyFilter = new DropDownMenu(root,
+            "Filter", // Energy filter
+            filterVals,
+            function (v) {
+                dataType.setDTV(v, null, null);
+
+                commitSelectionValueChange();
+            },
+            false),
+        functionEval = new FunctionWriter(root, "Expression", function (v) {
             dataType.setFunction(v);
-            commitValueChange();
+            commitInputValueChange();
         });
-    })();
 
-    this.getValueFromData = dataType.getDataValue;
+    functionEval.setEvalString(dataType.getTag());
 }
-
-function FunctionWriter(root, onChange) {
-    var input = root.append("div")
-        .append("input")
+function FunctionWriter(root, title, onChange) {
+    var group = root.append("div")
+        .attr("class", "form-group function-writer");
+    var label = group.append("label")
+        .attr("class", "form-control-label")
+        .attr("for", "function-writer-"+FunctionWriter.fncount)
+        .text(title),
+        input = group.append("input")
+            .attr("type", "text")
+            .attr("class", "form-control")
+            .attr("id", "function-writer-"+FunctionWriter.fncount)
         .on("input", function () {
+            setStatic(false);
             var evalString = parseEvalString(this.value);
             if(evalString) {
+                setSuccess(true);
                 onChange(evalString);
+            } else {
+                setWarning(true);
             }
+        })
+        .on("click", function () {
+            setStatic(false);
         });
+    group.append("small").attr("class", "form-text text-muted").text("Help text");
 
-    //http://2ality.com/2014/01/eval.html
     function parseEvalString(input) {
         console.log("parseEvalString(" + input + ")");
         var vars = [],
@@ -103,11 +163,19 @@ function FunctionWriter(root, onChange) {
          */
         var output = "";
         // set up vars
-        vars.filter(function(v, i, a){ return a.indexOf(v) === i;}).forEach(function(vaR){
-            var varDataIndex = collum_tags.indexOf(vaR);
+        var inValidVars = vars.filter(function(v, i, a){ return a.indexOf(v) === i;}).filter(function(vaR){
+            var varDataIndex = DataType.getDataIndexOfVar(vaR);
+            if(varDataIndex === false){
+                return true;
+            }
             var fRef = "FEATURES["+varDataIndex+"]";
             output += "var " + vaR + " = " + fRef + "; ";
+            return false;
         });
+        if(inValidVars.length > 0){
+            console.log("parseEvalString: could not find vars: " + inValidVars.toString());
+            return null;
+        }
         // append evalString
         output += "\"" + evalString + "\";";
         try {
@@ -118,15 +186,42 @@ function FunctionWriter(root, onChange) {
             var result = math.eval(mathString);
             return output;
         } catch (e){
-            console.log("Could not eval(" + output + ") " + e.message);
+            console.log("parseEvalString: could not eval(" + output + ") " + e.message);
             return null;
         }
     }
     this.setEvalString = function (str) {
         input.property("value", str);
+        setStatic(true);
     };
-    input.property("value", "[co2]/[real_estates]*2(");
+
+    function setStatic(s){
+        input.classed("static", s);
+        if(s === true){
+            setWarning(false);
+            setSuccess(false);
+        }
+    }
+
+    function setWarning(w){
+        if(w === true){
+            setSuccess(false);
+        }
+        group.classed("has-warning", w);
+        input.classed("form-control-warning", w);
+    }
+
+    function setSuccess(s){
+        if(s === true){
+            setWarning(false);
+        }
+        group.classed("has-success", s);
+        input.classed("form-control-success", s);
+    }
+
+    FunctionWriter.fncount++;
 }
+FunctionWriter.fncount = 0;
 function ToggleMenu(root, options, onChange) {
     var buttons = root.append("div")
         .attr("data-toggle", "buttons");
@@ -141,28 +236,74 @@ function ToggleMenu(root, options, onChange) {
             .attr("type", "radio");
     });
 }
-function DropDownMenu(root, name, values, onChange, visible) {
+function SelectionBox(root, title, initiallyChecked, onChange, visible) {
     var _visible = visible,
-        dropdown = root.append("div")
+        _isChanged = false,
+        _checked = initiallyChecked,
+        checkbox = root.append("div")
+        .attr("class", "form-check");
+    var label = checkbox.append("label")
+        .attr("class", "form-check-label");
+    label.append("input")
+        .attr("class", "form-check-input")
+        .attr("type", "checkbox")
+        .property("checked", initiallyChecked);
+    label.append("span").text(title);
+    label.on("change", function () {
+        _checked = !_checked;
+        _isChanged = true;
+        onChange(_checked);
+    });
+    if (!_visible) {
+        hide();
+    }
+
+    function show() {
+        var r = !_visible;
+        checkbox.style("display", "inherit");
+        _visible = true;
+        return r;
+    }
+    this.show = show;
+
+    function hide() {
+        var r = _visible;
+        checkbox.style("display", "none");
+        _visible = false;
+        return r;
+    }
+    this.hide = hide;
+
+    this.isChanged = function () {
+        return _isChanged;
+    };
+}
+function DropDownMenu(root, title, values, onChange, visible) {
+    var _visible = visible,
+        _isChanged = false,
+        group = root.append("div")
+        .attr("class", "form-group"),
+        dropdown = group.append("div")
         .attr("class", "dropdown");
-    dropdown.append("button")
+    var button = dropdown.append("button")
         .attr("class", "btn btn-secondary dropdown-toggle")
         .attr("type", "button")
         .attr("data-toggle", "dropdown")
-        .html(name);
-    var dropdownOptions = dropdown.append("div")
+        .html(title),
+        dropdownOptions = dropdown.append("div")
         .attr("class", "dropdown-menu");
-    values.forEach(function (v) {
+    values.forEach(function (v, i) {
         dropdownOptions.append("button")
             .attr("class", "dropdown-item")
-            .html(v[0])
+            .html(v.title)
             .on("click", function () {
-                setValue(v[1]);
+                setIndex(i);
             });
     });
     if (!_visible) {
         hide();
     }
+    this.isChanged = false;
 
     function show() {
         var r = !_visible;
@@ -180,13 +321,19 @@ function DropDownMenu(root, name, values, onChange, visible) {
     }
     this.hide = hide;
 
-    var value = null;
+    var v = null;
     this.getLastValue = function () {
-        return value;
+        return v.value;
     };
-    function setValue(newVal) {
-        value = newVal;
-        onChange(newVal);
+    function setIndex(i) {
+        v = values[i];
+        button.html(v.title);
+        _isChanged = true;
+        onChange(v.value);
     }
-    this.setValue = setValue;
+    this.setIndex = setIndex;
+
+    this.isChanged = function () {
+        return _isChanged;
+    };
 }
