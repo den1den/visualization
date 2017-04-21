@@ -10,7 +10,11 @@ function DataTypeTitle(rootId, dataType) {
         if (dataType === null) {
             el.html("None set").style("color", "#999");
         } else {
-            el.html(collum_names[dataType.getIndex()]).style("color", "#000");
+            if(dataType.getUsedType() === 1) {
+                el.html(collum_names[dataType.getColIndex()]).style("color", "#000");
+            } else {
+                el.html("Custom expression").style("color", "#000");
+            }
         }
     }
 }

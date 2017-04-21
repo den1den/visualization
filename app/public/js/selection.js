@@ -15,6 +15,13 @@ function dataTypeChange(source, newSelectedDataType) {
         value: newSelectedDataType
     });
 }
+function yearChange(source, newYearSelection){
+    SelectionManager.fireChange({
+        type: "year",
+        source: source,
+        value: newYearSelection
+    });
+}
 var SelectionManager = (function () {
     var changeListeners = {};
     function getChangeListener(type) {

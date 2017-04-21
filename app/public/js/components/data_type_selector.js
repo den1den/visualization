@@ -94,6 +94,8 @@ function DataTypeSelector(rootId, dataType) {
                     energyFilter.show();
                 }
                 dataType.setDTV(null, v, null);
+
+                commitSelectionValueChange();
             },
             false),
         energyFilter = new DropDownMenu(root,
@@ -130,7 +132,9 @@ function FunctionWriter(root, title, onChange) {
                 setSuccess(true);
                 onChange(r);
             } else if(r !== null) {
-                setWarning("Could not find parameters: "+r);
+                setWarning("Could not find parameters: "+r.map(function (v) {
+                    return "\"" + v + "\"";
+                    }));
             } else {
                 setDanger(true);
             }
@@ -144,7 +148,7 @@ function FunctionWriter(root, title, onChange) {
     function parseEvalString(input) {
         console.log("parseEvalString(" + input + ")");
         var vars = [],
-            re = /\[[^\]]+]/i,
+            re = /\[[^\]]*]/i,
             x,
             evalString = input;
         while (true) {
@@ -166,25 +170,25 @@ function FunctionWriter(root, title, onChange) {
          */
         var output = "";
         // set up vars
-        var inValidVars = vars.filter(function(v, i, a){ return a.indexOf(v) === i;}).filter(function(vaR){
+        var invalidVars = vars.filter(function(v, i, a){ return a.indexOf(v) === i;}).filter(function(vaR){
             var varDataIndex = DataType.getDataIndexOfVar(vaR);
-            if(varDataIndex === false){
+            if(varDataIndex === null){
                 return true;
             }
             var fRef = "FEATURES["+varDataIndex+"]";
             output += "var " + vaR + " = " + fRef + "; ";
             return false;
         });
-        if(inValidVars.length > 0){
-            console.log("parseEvalString: could not find vars: " + inValidVars.toString());
-            return inValidVars;
+        if(invalidVars.length > 0){
+            console.log("parseEvalString: could not find vars: " + invalidVars.toString());
+            return invalidVars;
         }
         // append evalString
         output += "\"" + evalString + "\";";
         try {
             // Test if it works
             var FEATURES = [];
-            for(var i = 0; i < collum_tags.length; i++) {FEATURES.push(1);}
+            for(var i = 0; i < DataType.dataElementsCount; i++) {FEATURES.push(1);}
             var mathString = eval(output);
             var result = math.eval(mathString);
             return output;

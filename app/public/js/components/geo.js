@@ -53,10 +53,13 @@ function GeoMap(rootId, dataType) {
         this.min = min;
         this.max = max;
     }
-    ColorFunction.prototype.getColorFunction = function () {
+    ColorFunction.prototype.getColoringFunction = function () {
         var colorFunction = this;
         return function (d) {
             var val = getValue(d);
+            if(val === null){
+                return d3.color("white");
+            }
             var val01 = (val - colorFunction.min) / (colorFunction.max - colorFunction.min);
             return d3.hsl(0, val01, 0.5);
         };
@@ -74,7 +77,7 @@ function GeoMap(rootId, dataType) {
         return "ColorFunction(min="+this.min+", max="+this.max+")";
     };
     function getValue(dataElement){
-        return dataType.getDataValue(dataElement.properties.data[2011]);
+        return dataType.getDataValue(YearSelection.aggOverYears(dataElement.properties.data));
     }
 
     // single colorFunction
@@ -104,7 +107,7 @@ function GeoMap(rootId, dataType) {
                 .enter()
                 .append("path")
                 .attr("d", path)
-                .style("fill", colorFunction.getColorFunction())
+                .style("fill", colorFunction.getColoringFunction())
                 .on("click", clickedFn);
             // meshes[index].append("path")
             //     .datum(mesh)
@@ -158,7 +161,7 @@ function GeoMap(rootId, dataType) {
                 .attr("d", path);
         });
 
-        SelectionManager.addChangeListener(["data-1"], function (newChangeObject, previousChangeObject) {
+        SelectionManager.addChangeListener(["data-1", "year"], function (newChangeObject, previousChangeObject) {
             colorFunction = new ColorFunction();
             append(0);
             append(1);

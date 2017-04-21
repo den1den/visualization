@@ -7,7 +7,7 @@ var Chart = function (rootId, csx, csy) {
     var $svg = $(rootId);
     var svg = d3.select(rootId);
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 50};
+    var margin = {top: 20, right: 20, bottom: 30, left: 80};
     var width = $svg.width() - margin.left - margin.right - 10;
     var height = 490 - 10;
 
@@ -43,11 +43,6 @@ var Chart = function (rootId, csx, csy) {
         return d[0];
     }
 
-    d3.select("#chart-legend .table-years").selectAll("th")
-        .style("background-color", function (d, i) {
-            return yearColors[i];
-        });
-
     function setDomain(d) {
         var l = d[1] - d[0];
         var p = 0.05;
@@ -60,11 +55,11 @@ var Chart = function (rootId, csx, csy) {
         feature = data.withAggregate(feature, index);
         chartData = [];
         if (feature.properties.data) {
-            for (var key in feature.properties.data) {
-                if (feature.properties.data.hasOwnProperty(key)) {
-                    chartData.push([+key, feature.properties.data[key]]);
+            YearSelection.getSelectedYears().forEach(function (year) {
+                if (feature.properties.data.hasOwnProperty(year)) {
+                    chartData.push([+year, feature.properties.data[year]]);
                 }
-            }
+            });
         } else {
             console.log("Could not find feature.properties for chart");
             root.selectAll("*").remove();
@@ -126,14 +121,20 @@ var Chart = function (rootId, csx, csy) {
         parseXY(null, -1);
         redraw();
 
+        var prevSV = null;
         SelectionManager.addChangeListener("selection", function (newChangeObject, previousChangeObject) {
-            parseXY(newChangeObject.value.data, newChangeObject.value.level);
-            redraw();
+            prevSV = newChangeObject.value;
         });
 
-        SelectionManager.addChangeListener(["data-0", "data-1"], function (newChangeObject, previousChangeObject) {
-            redraw();
+        SelectionManager.addChangeListener(["selection", "year"], function (newChangeObject, previousChangeObject) {
+            if(prevSV === null){
+                parseXY(null, -1);
+            } else {
+                parseXY(prevSV.data, prevSV.level);
+            }
         });
+
+        SelectionManager.addChangeListener(["selection", "year", "data-0", "data-1"], redraw);
     };
 
     //TODO; https://bl.ocks.org/mbostock/3885304

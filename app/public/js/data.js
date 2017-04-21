@@ -7,9 +7,6 @@ var objectKey = ["stadsdeel", "wijken", "buurten"];
 var propertyKey = ["stadsdeelnaam", "wijknaam", "buurtnaam"];
 var propertyCodeKey = ["stadsdeelcode", "wijkcode", "buurtcode"];
 
-var yearColors = ["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"];
-yearColors = ["#fdd0a2", "#fdae6b", "#fd8d3c", "#e6550d", "#a63603"];
-
 function TopoJsonData() {
     var _data = null;
     this.get = function (callback) {
@@ -57,27 +54,35 @@ function TopoJsonData() {
         }
     };
     function join(property_datas) {
-        var new_data = [], i, year, newdict, newval;
+        var new_data = [], i, year, newdict, newval,
+            getSum = function (i) {
+                var sum = 0, x, foundKnown = false;
+                for (x = 0; x < property_datas.length; x++) {
+                    var val = property_datas[x][year][i];
+                    if (val > 0) {
+                        // Only sum known values
+                        sum += property_datas[x][year][i];
+                        foundKnown = true;
+                    }
+                }
+                if (foundKnown) {
+                    return sum;
+                } else {
+                    return null;
+                }
+            };
         for (i = 0; i < 28; i++) {
             newdict = {};
             for (year = 2011; year <= 2015; year++) {
-                function getSum(i) {
-                    var sum = 0, x;
-                    for (x = 0; x < property_datas.length; x++) {
-                        sum += property_datas[x][year][i];
-                    }
-                    return sum;
-                }
 
                 if ((i >= 12 && i <= 14) || (i >= 21 && i <= 23)) {
                     // avg
-                    newval = getSum(i - 3) / getSum(i - 6);
+                    var sum = getSum(i - 3);
+                    var n = getSum(i - 6);
+                    newval = sum === null ? null : (n === null ? null : (sum / n));
                 } else {
                     // summation
                     newval = getSum(i);
-                }
-                if (newval !== 0 && !newval) {
-                    throw new Error("Stange value calculated: " + newval);
                 }
                 if (!new_data[year]) {
                     new_data[year] = [];
