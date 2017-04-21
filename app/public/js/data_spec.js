@@ -117,7 +117,7 @@ var collum_names_nl = [
         "Real estates", // 0 filter=combined, aggr=total, source=
         "Real estates with electricity",
         "Real estates with gas",
-        "Co2 emissions (kg)", // 3
+        "CO<sub>2</sub> emissions (kg)", // 3
         "Power consumption (kWh)",
         "Gas consumption (m3)",
 
@@ -155,6 +155,7 @@ var collum_names_nl = [
         "Other production (kWh)",
         "Average other energy production (kWh)" // CUSTOM ADDED
     ],
+    htmlsafe_collum_names = collum_names.slice(),
     collum_tags = [
         "N",
         "N_elec",
@@ -190,3 +191,4 @@ var collum_names_nl = [
         "other",
         "other]/[N"
     ];
+htmlsafe_collum_names[3] =  "CO2 emissions (kg)";

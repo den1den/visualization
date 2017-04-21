@@ -6,7 +6,6 @@ var filterVals = [
 function DataTypeSelector(rootId, dataType) {
     var root = d3.select(rootId),
         title = new DataTypeTitle(rootId + "-title", dataType);
-    this.getValueFromData = dataType.getDataValue;
 
     function commitSelectionValueChange(){
         functionEval.setEvalString(dataType.getTag());
@@ -110,7 +109,12 @@ function DataTypeSelector(rootId, dataType) {
         functionEval = new FunctionWriter(root, "Expression", function (v) {
             dataType.setFunction(v);
             commitInputValueChange();
-        });
+        }),
+        zeroSelection = new SelectionBox(root, "Zero", dataType.isZero(), function (v) {
+            dataType.setZero(v);
+            commitInputValueChange();
+        },
+        true);
 
     functionEval.setEvalString(dataType.getTag());
 }

@@ -4,7 +4,8 @@ function DataType(xy, defaults){
         _source = null,
         _aggr = null,
         _colIndex = -1,
-        _evalString = null;
+        _evalString = null,
+        _zero = false;
 
     var selected = 1;
     // selected === 1 => index
@@ -25,7 +26,7 @@ function DataType(xy, defaults){
             changed = true;
         }
         _colIndex = -1;
-        console.log("setDTV to "+toString());
+        //console.log("setDTV to "+toString());
         return changed;
     };
 
@@ -98,7 +99,7 @@ function DataType(xy, defaults){
                 constructColIndex();
                 throw new Error("Could not construct ColIndex of "+toString());
             } else {
-                console.log("Constructed ColIndex of "+toString());
+                //console.log("Constructed ColIndex of "+toString());
             }
         }
         return _colIndex;
@@ -111,6 +112,9 @@ function DataType(xy, defaults){
     this.reset = function () {
         if (defaults) {
             this.setDTV(defaults.owner, defaults.source, defaults.agg);
+            if(defaults.zero) {
+                _zero = defaults.zero;
+            }
         } else {
             _owner = null;
             _source = null;
@@ -122,7 +126,7 @@ function DataType(xy, defaults){
     };
     this.reset();
 
-    this.getDataValue = function(data) {
+    this.getValueFromData = function(data) {
         var val;
         if(selected === 2) {
             // eval function
@@ -168,7 +172,7 @@ function DataType(xy, defaults){
             } else {
                 val = data[getDataIndex(colIndex)];
                 if(val < 0){
-                    console.log("DEBUG: Value is missing");
+                    //console.log("DEBUG: Value is missing");
                     return null;
                 }
             }
@@ -210,9 +214,24 @@ function DataType(xy, defaults){
         return selected;
     };
 
+    this.setZero = function (z) {
+        _zero = z;
+    };
+    this.isZero = function () {
+        return _zero;
+    };
+
     function toString() {
         return "DataType(_source=" + _source + ", _owner=" + _owner + ", _aggr=" + _aggr + ", selected=" + selected + ", _index=" + _colIndex + ", _evalString=" + _evalString + ")";
     }
+
+    this.getTitle = function () {
+        if (this.getUsedType() === 1) {
+            return collum_names[this.getColIndex()];
+        } else {
+            return "Custom expression";
+        }
+    };
 }
 DataType.getDataIndexOfVar = function (vaR) {
     var i;
@@ -223,7 +242,7 @@ DataType.getDataIndexOfVar = function (vaR) {
 };
 DataType.dataElementsCount = collum_names.length - 5;
 
-var YearSelection = (function () {
+function YearSelection() {
     var years = [2011, 2012, 2013, 2014, 2015],
         selected = [true, true, true, true, true];
     var types = ["sum", "std", "avg"];
@@ -234,9 +253,15 @@ var YearSelection = (function () {
         });
     }
     function toString(){
-        return "YearSelection(" + getSelected() + ")";
+        return "yearSelection(" + getSelected() + ")";
     }
     return {
+        store: function () {
+            return selected.slice();
+        },
+        restore: function (stored) {
+            selected = stored.slice();
+        },
         setSelected: function (index, s) {
             selected[index] = s;
         },
@@ -287,4 +312,4 @@ var YearSelection = (function () {
         },
         toString: toString
     };
-})();
+}

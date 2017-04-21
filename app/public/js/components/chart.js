@@ -9,7 +9,7 @@ var Chart = function (rootId, csx, csy) {
 
     var margin = {top: 20, right: 20, bottom: 30, left: 80};
     var width = $svg.width() - margin.left - margin.right - 10;
-    var height = 490 - 10;
+    var height = 380 - 10;
 
     svg.append("rect")
         .attr("class", "background")
@@ -43,10 +43,12 @@ var Chart = function (rootId, csx, csy) {
         return d[0];
     }
 
-    function setDomain(d) {
-        var l = d[1] - d[0];
-        var p = 0.05;
-        return [d[0] - p * l, d[1] + p * l];
+    function setDomain(d, includeZero) {
+        var l = includeZero ? 0 : d[0],
+            h = d[1],
+            r = h - l,
+            p = 0.05;
+        return [l - p * r, h + p * r];
     }
 
     var chartData = null;
@@ -55,7 +57,7 @@ var Chart = function (rootId, csx, csy) {
         feature = data.withAggregate(feature, index);
         chartData = [];
         if (feature.properties.data) {
-            YearSelection.getSelectedYears().forEach(function (year) {
+            yearSelection.getSelectedYears().forEach(function (year) {
                 if (feature.properties.data.hasOwnProperty(year)) {
                     chartData.push([+year, feature.properties.data[year]]);
                 }
@@ -77,8 +79,8 @@ var Chart = function (rootId, csx, csy) {
             .x(x).y(y);
 
         // Scale the range of the data
-        xAxis.domain(setDomain(d3.extent(chartData, getX)));
-        yAxis.domain(setDomain(d3.extent(chartData, getY)));
+        xAxis.domain(setDomain(d3.extent(chartData, getX), csx.isZero()));
+        yAxis.domain(setDomain(d3.extent(chartData, getY), csy.isZero()));
         // xAxis.domain([0, d3.max(data, getX)]);
         // yAxis.domain([0, d3.max(data, getY)]);
 
@@ -101,8 +103,8 @@ var Chart = function (rootId, csx, csy) {
             .style("fill", function (d) {
                 return yearColors[getYear(d) - 2011];
             })
-            .append("svg:title").text(function (d) {
-                return "year = "+d[0]+", data[0]="+d[1][0];
+            .append("svg:title").html(function (d) {
+                return csx.getTitle() + " = "+d[1][0]+"\n" + csy.getTitle() + " = "+d[1][1]+"\nyear = "+d[0];
             });
 
         // Add the X Axis
@@ -127,14 +129,20 @@ var Chart = function (rootId, csx, csy) {
         });
 
         SelectionManager.addChangeListener(["selection", "year"], function (newChangeObject, previousChangeObject) {
-            if(prevSV === null){
-                parseXY(null, -1);
-            } else {
-                parseXY(prevSV.data, prevSV.level);
+            if(newChangeObject.source !== "legend-hover") {
+                if (prevSV === null) {
+                    parseXY(null, -1);
+                } else {
+                    parseXY(prevSV.data, prevSV.level);
+                }
             }
         });
 
-        SelectionManager.addChangeListener(["selection", "year", "data-0", "data-1"], redraw);
+        SelectionManager.addChangeListener(["selection", "year", "data-0", "data-1"], function (newChangeObject, previousChangeObject) {
+            if(newChangeObject.source !== "legend-hover") {
+                redraw();
+            }
+        });
     };
 
     //TODO; https://bl.ocks.org/mbostock/3885304

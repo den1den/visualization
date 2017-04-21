@@ -1,3 +1,10 @@
+/*body {*/
+    /*background-color: #fcf4ed;*/
+/*}*/
+/*body > div {*/
+    /*background-color: rgb(255, 254, 254);*/
+/*}*/
+
 a {
     color: #d94701;
 }
@@ -17,13 +24,22 @@ a:hover {
 #selection-list {
     font-size: 0.7em;
 }
+.li-buttons{
+    display: block;
+}
+#selection-list .nav-item {
+    font-size: 0.7em;
+}
 /***************************************/
 #geo {
     stroke-linejoin: round;
     stroke-linecap: round;
     cursor: pointer;
-    height: 500px;
+    height: 380px;
     width: 100%;
+}
+#selection-list{
+    max-height: 380px;
 }
 
 #geo .background {
@@ -58,6 +74,7 @@ a:hover {
     fill: #fdbe85;
     stroke-width: 1px;
     stroke: #e6550d;
+    stroke: #525252;
 }
 .mesh {
     fill: none;
@@ -111,4 +128,12 @@ a:hover {
 }
 .function-writer .static{
     color: gray;
+}
+
+#years-legend{
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+#years-legend li:hover .active{
+    text-decoration: underline;
 }

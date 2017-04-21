@@ -8,13 +8,9 @@ function DataTypeTitle(rootId, dataType) {
     });
     function setTitle(dataType){
         if (dataType === null) {
-            el.html("None set").style("color", "#999");
+            el.html("None set");//.style("color", "#999");
         } else {
-            if(dataType.getUsedType() === 1) {
-                el.html(collum_names[dataType.getColIndex()]).style("color", "#000");
-            } else {
-                el.html("Custom expression").style("color", "#000");
-            }
+            el.html(dataType.getTitle());//.style("color", "#999");
         }
     }
 }
@@ -35,6 +31,6 @@ function SelectionTitle(rootId) {
         } else {
             selectedText = dataType.data.properties[propertyKey[dataType.level]] + " (" + typeName[dataType.level].toLowerCase() + ")";
         }
-        el.text(selectedText);
+        el.html(selectedText);
     }
 }

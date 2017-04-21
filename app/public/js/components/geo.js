@@ -1,7 +1,4 @@
-/**
- * Created by Dennis on 28-1-2017.
- */
-/*global d3,$*/
+/*global d3,$,selectionChange,yearSelection,SelectionManager*/
 function GeoMap(rootId, dataType) {
     var svg = d3.select(rootId);
 
@@ -17,15 +14,17 @@ function GeoMap(rootId, dataType) {
     svg.attr("width", width)
         .attr("height", height)
         .on("click", stopped);
+    var root = svg.append("g");
     // Add background
-    svg.append("rect")
+    root.append("rect")
         .attr("class", "background")
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", width*30)
+        .attr("height", height*30)
+        .attr("x", -10*width)
+        .attr("y", -10*height)
         .on("click", function () {
             selectionChange("GeoMap-background", null, -1);
         });
-    var root = svg.append("g");
 
     var areas = [
         root.append("g").attr("class", "area").attr("id", "level0-area"),
@@ -41,16 +40,47 @@ function GeoMap(rootId, dataType) {
     // Setup zooming behaviour
     var zoom = d3.zoom()
         .scaleExtent([1, 8])
-        .on("zoom", onZoom);
+        .on("zoom", function onZoom() {
+            //root.style("stroke-width", 1.5 / d3.event.transform.k + "px");
+            root.attr("transform", d3.event.transform);
+        });
+    root.call(zoom);
+    function zoomTo(translate, scale) {
+        root.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+    }
 
-    // ZOOM OPTION:
-    // FIXME: this does not work :(
-    // svg.call(zoom);
+    function initZoom(hasBounds) {
+        projection.scale(1).translate([0, 0]);
+        var s, t,
+            b = path.bounds(hasBounds),
+            dx = b[1][0] - b[0][0],
+            dy = b[1][1] - b[0][1];
+        s = 0.83 / Math.max(dx / width, dy / height);
+        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+        projection.scale(s).translate(t);
+    }
+
+    function resetZoom() {
+        // meshes[0].style("display", "inherit");
+        // meshes[1].style("display", "none");
+        // meshes[2].style("display", "none");
+
+        // areas[0].style("display", "inherit");
+        // areas[1].style("display", "none");
+        // areas[2].style("display", "none");
+
+        root.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity); // updated for d3 v4
+
+    }
 
     var selected = root.append("g").attr("id", "selected-area");
 
     function ColorFunction(min, max) {
-        this.min = min;
+        this.min = dataType.isZero() ? 0 : min;
         this.max = max;
     }
     ColorFunction.prototype.getColoringFunction = function () {
@@ -58,7 +88,7 @@ function GeoMap(rootId, dataType) {
         return function (d) {
             var val = getValue(d);
             if(val === null){
-                return d3.color("white");
+                return d3.hsl(0, 0, 1);
             }
             var val01 = (val - colorFunction.min) / (colorFunction.max - colorFunction.min);
             return d3.hsl(0, val01, 0.5);
@@ -77,19 +107,20 @@ function GeoMap(rootId, dataType) {
         return "ColorFunction(min="+this.min+", max="+this.max+")";
     };
     function getValue(dataElement){
-        return dataType.getDataValue(YearSelection.aggOverYears(dataElement.properties.data));
+        return dataType.getValueFromData(yearSelection.aggOverYears(dataElement.properties.data));
     }
 
-    // single colorFunction
-    var colorFunction = new ColorFunction();
-
     this.bindData = function (data) {
+
         //init
         initZoom(data.getMesh(2));
         function append(index) {
+
+            // single colorFunction
+            var colorFunction = new ColorFunction();
+
             var featureCollection,
-                mesh = data.getMesh(index),
-                clickedFn = getOnClickedFn(index);
+                mesh = data.getMesh(index);
             featureCollection = data.getFeatureCollection(index);
             featureCollection.features.map(function (f) {
                 return data.withAggregate(f, index);
@@ -108,7 +139,7 @@ function GeoMap(rootId, dataType) {
                 .append("path")
                 .attr("d", path)
                 .style("fill", colorFunction.getColoringFunction())
-                .on("click", clickedFn);
+                .on("click", getOnClickedFn(index));
             // meshes[index].append("path")
             //     .datum(mesh)
             //     .attr("d", path);
@@ -145,11 +176,9 @@ function GeoMap(rootId, dataType) {
                     dy = bounds[1][1] - bounds[0][1],
                     x = (bounds[0][0] + bounds[1][0]) / 2,
                     y = (bounds[0][1] + bounds[1][1]) / 2,
-                    scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+                    scale = Math.max(1, Math.min(8, 0.5 / Math.max(dx / width, dy / height))),
                     translate = [width / 2 - scale * x, height / 2 - scale * y];
-                root.transition()
-                    .duration(750)
-                    .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+                zoomTo(translate, scale);
             }
 
             // Add outline to selected path
@@ -161,44 +190,12 @@ function GeoMap(rootId, dataType) {
                 .attr("d", path);
         });
 
-        SelectionManager.addChangeListener(["data-1", "year"], function (newChangeObject, previousChangeObject) {
-            colorFunction = new ColorFunction();
+        SelectionManager.addChangeListener(["selection", "data-1", "year"], function (newChangeObject, previousChangeObject) {
             append(0);
             append(1);
             append(2);
         });
     };
-
-    function initZoom(hasBounds) {
-        projection.scale(1).translate([0, 0]);
-        var s, t,
-            b = path.bounds(hasBounds),
-            dx = b[1][0] - b[0][0],
-            dy = b[1][1] - b[0][1];
-        s = 0.83 / Math.max(dx / width, dy / height);
-        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
-        projection.scale(s).translate(t);
-    }
-
-    function onZoom() {
-        //root.style("stroke-width", 1.5 / d3.event.transform.k + "px");
-        root.attr("transform", d3.event.transform);
-    }
-
-    function resetZoom() {
-        // meshes[0].style("display", "inherit");
-        // meshes[1].style("display", "none");
-        // meshes[2].style("display", "none");
-
-        // areas[0].style("display", "inherit");
-        // areas[1].style("display", "none");
-        // areas[2].style("display", "none");
-
-        root.transition()
-            .duration(750)
-            .call(zoom.transform, d3.zoomIdentity); // updated for d3 v4
-
-    }
 
     function getOnClickedFn(index) {
         return function (d) {

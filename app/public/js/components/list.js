@@ -1,4 +1,4 @@
-/*global d3*/
+/*global d3,$*/
 function ListSelector() {
     var lists = [
             d3.select("#list-stadsdeel"),
@@ -6,30 +6,40 @@ function ListSelector() {
             d3.select("#list-buurt").style("display", "none")
         ],
         listButtons = [
-            d3.select("#list-tab-stadsdeel"),
+            d3.select("#list-tab-stad"),
+            d3.select("#list-tab-stadsdeel").classed("active", true),
             d3.select("#list-tab-wijk"),
             d3.select("#list-tab-buurt")
         ];
 
     listButtons.forEach(function (el, i) {
-        el.on("click", function () {
-            resetFilter(i);
-        });
+        if (i === 0) {
+            el.on("click", function () {
+                selectionChange("ListSelector-buttom", null, -1);
+            });
+        } else {
+            el.on("click", function () {
+                resetFilter(i - 1);
+            });
+        }
     });
 
     function setList(index) {
-        var i = -1;
-        while (++i <= 2) {
-            var isShow = i === index || (i === 0 && index === -1);
-            lists[i].style("display", isShow ? "block" : "none");
-            listButtons[i].attr("class", "nav-link" + (isShow ? " active" : ""));
+        for(var i = 0; i < 4; i++){
+            if(i < 3) {
+                lists[i].style("display", i === index || i === 0 && index === -1 ? "block" : "none");
+            }
+            listButtons[i].classed("active", index === -1 && (i === 1) || index !== -1 && (i === index + 1));
         }
     }
 
+    var _filtered = false;
     function resetFilter(level){
         setFilter(level, -1);
+        _filtered = false;
     }
     function setFilter(level, filterLevel, filterValue) {
+        _filtered = true;
         var amount = 0;
         setList(level);
         if(level >= 0) {
@@ -74,13 +84,15 @@ function ListSelector() {
                 .attr("id", function (d) {
                     return "list-item-" + index + "-" + d.index;
                 })
-                //.append("span").attr("class", "tag tag-default tag-pill")
+                .append("div")
+                .attr("class", "li-title")
                 .text(function (d) {
                     return d.name;
                 })
                 .on("click", function(d){
                     getOnClickFn(d.d, index)();
-                });
+                })
+            ;
         }
 
         append.call(this, 0);
@@ -93,71 +105,90 @@ function ListSelector() {
             if (previousChangeObject !== null) {
                 var oldData = previousChangeObject.value.data,
                     oldSelectedLevel = previousChangeObject.value.level;
-                var oldElIndex = oldData.properties[propertyCodeKey[oldSelectedLevel]],
-                    oldEl = lists[oldSelectedLevel].select("#list-item-" + oldSelectedLevel + "-" + oldElIndex);
-                oldEl.classed("active", false);
-                oldEl.select("div").remove();
-            }
-            function centerNode(el, parent) {
-                if(el.node.scrollIntoView){
-                    el.node.scrollIntoView();
-                } else {
-                    return;
-                    var current = parent.property("scrollTop");
-                    var target = el.property("offsetTop");
-                    target = target < 0 ? 0 : target;
-                    var interpolate = d3.interpolateNumber(current, target);
-                    parent.transition()
-                        .duration(1000)
-                        .tween("centerNode", function () {
-                            var parent = this;
-                            return function (t) {
-                                parent.scrollTop = interpolate(t) - 148;
-                            };
-                        });
-                    console.log("interpolating scrollTop of " + parent + " from " + current + " to " + target);
+                if(oldData !== null) {
+                    // If anything was selected
+                    var oldElIndex = oldData.properties[propertyCodeKey[oldSelectedLevel]],
+                        oldEl = lists[oldSelectedLevel].select("#list-item-" + oldSelectedLevel + "-" + oldElIndex);
+                    oldEl.classed("active", false);
+                    oldEl.select(".li-buttons").remove();
                 }
             }
 
-            if (newData !== null) {
+            if (newData === null) {
+                setList(newLevel);
+            } else {
                 var elIndex = newData.properties[propertyCodeKey[newLevel]];
                 var el = lists[newLevel].select("#list-item-" + newLevel + "-" + elIndex);
                 el.classed("active", true);
 
                 var extraButtons = el.append("div")
-                    .classed("pull-right", true),
+                        .attr("class", "li-buttons text-right")
+                        .append("div"),
                     onClickBack;
-                if(newLevel > 0) {
+                if (newLevel > 0) {
                     onClickBack = function () {
+                        // Find parent and fire changeSelection with data
                         var filterOn = newData.properties[propertyCodeKey[newLevel - 1]];
-                        setFilter(newLevel - 1, newLevel - 1, filterOn);
+                        lists[newLevel - 1].selectAll("li").filter(function (d, i) {
+                            return filterOn === d.d.properties[propertyCodeKey[newLevel - 1]];
+                        }).each(function (parent) {
+                            selectionChange("ListSelector-back-root", parent.d, newLevel - 1);
+                        });
+                        d3.event.preventDefault();
                     };
                 } else {
                     onClickBack = function () {
                         selectionChange("ListSelector-back-root", null, -1);
-                        return false;
+                        d3.event.preventDefault();
                     };
                 }
                 extraButtons.append("button")
                     .classed("btn btn-default btn-secondary btn-sm", true)
                     .html("<i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i>")
                     .on("click", onClickBack);
-                if(newLevel < 2) {
+                if (newLevel < 2) {
                     extraButtons.append("button")
                         .classed("btn btn-default btn-secondary btn-sm", true)
                         .html("<i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>")
                         .on("click", function () {
                             setFilter(newLevel + 1, newLevel, elIndex);
                         })
-                        .classed("disabled", function (d) {
-                            return newLevel === 1 && d.d.properties.wijken_in_buurt <= 1;
+                        .attr("disabled", function (d) {
+                            return newLevel === 1 && d.d.properties.wijken_in_buurt <= 1 ? "disabled" : null;
                         });
                 }
-                resetFilter(newLevel);
-                centerNode(el, lists[newLevel]);
-            } else {
-                resetFilter(newLevel);
+                if(_filtered && previousChangeObject && previousChangeObject.value && (previousChangeObject.value.level === newLevel - 1 || previousChangeObject.value.level === newLevel)){
+                    // One deeper after filter
+                    // or same level after filer
+                } else {
+                    resetFilter(newLevel);
+                }
+
+                var parent = lists[newLevel].nodes()[0];
+                var child = el.nodes()[0];
+                scrollIntoView(child, parent);
             }
         });
     };
+
+    function scrollIntoView(child, parent, i) {
+        if(typeof i === "undefined"){
+            i = 0;
+        }
+        if(i > 10){
+            return false;
+        }
+        var childLow = child.offsetTop - parent.offsetTop,
+            childHigh = childLow + $(child).height(),
+            parentLow = parent.scrollTop,
+            parentHigh = parent.scrollTop + $(parent).height();
+        if(childLow < parentLow){
+            parent.scrollTop = childLow;
+            return scrollIntoView(child, parent, i+1);
+        } else if (childHigh > parentHigh){
+            parent.scrollTop = childLow + $(parent).height() - $(child).height();
+            return scrollIntoView(child, parent, i+1);
+        }
+        return true;
+    }
 }

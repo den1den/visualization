@@ -18,30 +18,27 @@
         </div>
     </div>
 
-    <!--<div>-->
-        <!--<blockquote class="blockquote" id="selected-title-container">-->
-            <!--<h3 class="mb-0"><small>Selected:</small>  <span id="selected-title"></span></h3>-->
-        <!--</blockquote>-->
-    <!--</div>-->
-
     <div class="row">
 
         <div class="col-md-3">
             <div class="card card-block">
                 <h4 class="card-title" id="select-y-title"></h4>
-                <h6 class="card-title">Vertical axis</h6>
+                <h6 class="card-title">Vertical axis / map</h6>
                 <p class="card-text" id="select-y"></p>
             </div>
         </div>
 
         <div class="col-md-9">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-xl-4 col-md-6">
                     <div class="card" id="selection-list">
                         <div class="card-header">
                             <ul class="nav nav-pills card-header-pills">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="#" id="list-tab-stadsdeel">City part</a>
+                                    <a class="nav-link" href="#" id="list-tab-stad">City</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#" id="list-tab-stadsdeel">City part</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#" id="list-tab-wijk">District</a>
@@ -62,8 +59,8 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <div id="geo-container">
+                <div class="col-xl-8 col-md-6">
+                    <div id="geo-container" class="card">
                         <svg id="geo"></svg>
                     </div>
                 </div>
@@ -72,9 +69,11 @@
 
     </div>
 
-    <!-- SLIDER -->
-    <div>
-
+    <div class="row">
+        <div class="col-md-12">
+            <div id="years-legend">
+            </div>
+        </div>
     </div>
 
     <!-- graph -->
@@ -88,10 +87,6 @@
         </div>
         <div class="col-md-6">
             <svg id="chart"></svg>
-        </div>
-        <div class="col-md-6 push-md-6">
-            <div id="chart-legend">
-            </div>
         </div>
     </div>
 </div><!-- container -->
@@ -109,7 +104,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.9.0/math.min.js"></script>
 <script src="js/util.js"></script>
 <script src="js/selection.js"></script>
-<script src="js/data.js"></script>
+<script src="js/data_spec.js"></script>
 <script src="js/data_controller.js"></script>
 <script src="js/components/year_selector.js"></script>
 <script src="js/components/chart.js"></script>

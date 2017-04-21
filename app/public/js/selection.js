@@ -33,7 +33,7 @@ var SelectionManager = (function () {
     var lastSelections = {};
     return {
         fireChange: function (newChangeObject) {
-            console.log("fireSelectionChange(type=" + newChangeObject.type + ", source=" + newChangeObject.source + ", change=" + newChangeObject.value + ")");
+            //console.log("fireSelectionChange(type=" + newChangeObject.type + ", source=" + newChangeObject.source + ", change=" + newChangeObject.value + ")");
             var previousChangeObject = (lastSelections[newChangeObject.type] ? lastSelections[newChangeObject.type] : null);
             lastSelections[newChangeObject.type] = newChangeObject;
             getChangeListener(newChangeObject.type).forEach(function (onChange) {
